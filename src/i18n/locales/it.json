@@ -1,0 +1,130 @@
+{
+  "app": {
+    "name": "Le Tappe del Progresso Umano",
+    "tagline": "Le scoperte, le invenzioni e le menti che hanno plasmato il mondo"
+  },
+  "nav": {
+    "home": "Home",
+    "timeline": "Cronologia",
+    "fields": "Per Campo",
+    "map": "Mappa del Mondo"
+  },
+  "home": {
+    "title": "Le Tappe del Progresso Umano",
+    "subtitle": "Dai campi di grano dell'antichità a CRISPR — esplora le scoperte, le invenzioni e le istituzioni che hanno fatto progredire l'umanità in ogni epoca, in ogni dominio e in ogni angolo del mondo.",
+    "browseDomain": "Esplora un dominio",
+    "exploreBy": "Oppure scegli un modo di esplorare",
+    "modes": {
+      "timeline": {
+        "title": "Cronologia",
+        "desc": "Viaggia dall'antichità a oggi attraverso le tappe che hanno cambiato tutto, epoca dopo epoca."
+      },
+      "fields": {
+        "title": "Per Campo",
+        "desc": "Sfoglia le svolte nella fisica, nella medicina, nell'informatica, nello spazio e oltre."
+      },
+      "map": {
+        "title": "Mappa del Mondo",
+        "desc": "Scopri dove è stata fatta la storia — e cosa è stato scoperto vicino a te."
+      }
+    }
+  },
+  "timeline": {
+    "title": "Cronologia",
+    "subtitle": "Scorri tra le grandi scoperte e invenzioni, raggruppate per epoca — dall'antichità all'era digitale.",
+    "allFields": "Tutti i campi",
+    "filterByField": "Filtra per campo",
+    "jumpToEra": "Vai all'epoca",
+    "bce": "a.C.",
+    "ce": "d.C.",
+    "ledTo": "Ha portato a",
+    "figure": "Protagonista",
+    "place": "Luogo",
+    "readMore": "Leggi di più",
+    "readLess": "Mostra meno",
+    "count_one": "{{count}} tappa",
+    "count_other": "{{count}} tappe"
+  },
+  "fields": {
+    "physics": "Fisica",
+    "astronomy": "Astronomia",
+    "medicine": "Medicina",
+    "computing": "Informatica",
+    "energy": "Energia",
+    "transport": "Trasporti",
+    "communication": "Comunicazione",
+    "biology_chemistry": "Biologia e Chimica",
+    "space": "Spazio",
+    "agriculture": "Agricoltura",
+    "trade": "Commercio",
+    "finance": "Finanza",
+    "industry": "Industria",
+    "labor": "Lavoro"
+  },
+  "categories": {
+    "all": "Tutti",
+    "science_tech": {
+      "title": "Scienza e Tecnologia",
+      "desc": "Da Archimede a CRISPR — le scoperte e le invenzioni che hanno trasformato il nostro modo di vedere il mondo."
+    },
+    "economy_industry": {
+      "title": "Economia e Industria",
+      "desc": "Dai campi di grano alla catena di montaggio — le rotte commerciali, il denaro e i metodi che hanno organizzato la vita umana."
+    }
+  },
+  "eras": {
+    "Ancient": "Antichità",
+    "Renaissance": "Rinascimento",
+    "Industrial": "Età Industriale",
+    "Modern": "Età Moderna",
+    "Digital": "Era Digitale e Spaziale"
+  },
+  "eraRange": {
+    "Ancient": "Prima del 1400",
+    "Renaissance": "1400 – 1700",
+    "Industrial": "1700 – 1900",
+    "Modern": "1900 – 1970",
+    "Digital": "Dal 1970 a oggi"
+  },
+  "fieldsIndex": {
+    "title": "Per Campo",
+    "subtitle": "Campi di progresso in due grandi famiglie. Scegline uno per seguirne le svolte nel tempo."
+  },
+  "map": {
+    "title": "Mappa del Mondo",
+    "subtitle": "Dove è avvenuta ogni scoperta e invenzione.",
+    "nearMe": "Vicino a me",
+    "locating": "Localizzazione…",
+    "nearTitle": "Luoghi della scienza intorno a te",
+    "denied": "Posizione non disponibile. Mostro tutti i siti (centrati su Firenze).",
+    "you": "La tua posizione",
+    "details": "Dettagli"
+  },
+  "detail": {
+    "about": "Cos'era e perché è stato importante",
+    "cameFrom": "Deriva da",
+    "viewOnMap": "Mostra sulla mappa",
+    "present": "oggi",
+    "notFound": "Tappa non trovata."
+  },
+  "common": {
+    "loading": "Caricamento…",
+    "back": "Indietro",
+    "km": "km",
+    "m": "m"
+  },
+  "status": {
+    "empty": "Ancora nessuna tappa. Esegui db/schema.sql e poi db/seed.sql nell'editor SQL di Supabase.",
+    "loadError": "Impossibile caricare i dati. Controlla la configurazione di Supabase."
+  },
+  "mascot": {
+    "name": "Claudio",
+    "tips": {
+      "home": "Ciao! Sono Claudio, la tua guida. Scegli come esplorare — io partirei dalla Cronologia!",
+      "timeline": "Passa tra Scienza & Tecnologia ed Economia & Industria, filtra per campo o salta direttamente a un'epoca.",
+      "fields": "Scegli un campo per vederne le svolte in ordine — ognuna apre la sua storia completa.",
+      "map": "I segnaposto sono colorati per campo. Tocca \"Vicino a me\" per scoprire le invenzioni intorno a te.",
+      "milestone": "Ecco la storia completa dietro questa tappa."
+    }
+  }
+}

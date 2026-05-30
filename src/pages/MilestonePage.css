@@ -1,0 +1,122 @@
+.detail-page {
+  max-width: 760px;
+}
+.detail-tag {
+  display: inline-flex;
+  margin-bottom: 0.6rem;
+}
+.detail-title {
+  margin: 0 0 0.3rem;
+}
+.detail-when {
+  color: var(--text-soft);
+  font-weight: 600;
+  margin: 0 0 1.4rem;
+}
+
+.detail-section {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+.detail-h {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--brass);
+  margin: 0 0 0.5rem;
+}
+.detail-desc {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+.detail-place {
+  margin: 0 0 0.8rem;
+  font-size: 0.98rem;
+}
+.detail-mapbtn {
+  font-size: 0.85rem;
+  padding: 0.45rem 0.9rem;
+}
+
+/* ---------- figure card ---------- */
+.figure-card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.figure-portrait {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--brass-light);
+}
+.figure-portrait.placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  background: var(--paper-deep);
+}
+.figure-info {
+  min-width: 0;
+}
+.figure-name {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--navy);
+}
+.figure-sub {
+  font-size: 0.85rem;
+  margin: 0.1rem 0 0.5rem;
+}
+.figure-bio {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+/* ---------- related chips ---------- */
+.detail-related {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.rel-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+.rel-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+.rel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--paper-deep);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+  color: var(--text);
+}
+.rel-chip::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--field-color, var(--navy));
+}
+.rel-chip:hover {
+  text-decoration: none;
+  background: var(--brass-light);
+}

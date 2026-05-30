@@ -1,0 +1,130 @@
+{
+  "app": {
+    "name": "人类进步里程碑",
+    "tagline": "塑造世界的发现、发明与伟大的头脑"
+  },
+  "nav": {
+    "home": "首页",
+    "timeline": "时间线",
+    "fields": "按领域",
+    "map": "世界地图"
+  },
+  "home": {
+    "title": "人类进步里程碑",
+    "subtitle": "从远古的麦田到 CRISPR——纵览推动人类前行的发现、发明与制度，跨越每个时代、每个领域、世界每个角落。",
+    "browseDomain": "选一个领域开始",
+    "exploreBy": "或者，挑一种探索方式",
+    "modes": {
+      "timeline": {
+        "title": "时间线",
+        "desc": "从古代到今天，逐个时代地穿越改变世界的里程碑。"
+      },
+      "fields": {
+        "title": "按领域",
+        "desc": "浏览物理、医学、计算、航天等领域的重大突破。"
+      },
+      "map": {
+        "title": "世界地图",
+        "desc": "看看历史在何处发生——以及你身边有哪些发现。"
+      }
+    }
+  },
+  "timeline": {
+    "title": "时间线",
+    "subtitle": "按时代浏览伟大的发现与发明——从远古到数字时代。",
+    "allFields": "全部领域",
+    "filterByField": "按领域筛选",
+    "jumpToEra": "跳转到时代",
+    "bce": "公元前",
+    "ce": "公元",
+    "ledTo": "促成了",
+    "figure": "关键人物",
+    "place": "地点",
+    "readMore": "展开",
+    "readLess": "收起",
+    "count_one": "{{count}} 个里程碑",
+    "count_other": "{{count}} 个里程碑"
+  },
+  "fields": {
+    "physics": "物理学",
+    "astronomy": "天文学",
+    "medicine": "医学",
+    "computing": "计算机",
+    "energy": "能源",
+    "transport": "交通",
+    "communication": "通信",
+    "biology_chemistry": "生物与化学",
+    "space": "航天",
+    "agriculture": "农业",
+    "trade": "贸易",
+    "finance": "金融",
+    "industry": "工业",
+    "labor": "劳工"
+  },
+  "categories": {
+    "all": "全部",
+    "science_tech": {
+      "title": "科学与技术",
+      "desc": "从阿基米德到 CRISPR——重塑人类认识世界方式的发现与发明。"
+    },
+    "economy_industry": {
+      "title": "经济与工业",
+      "desc": "从麦田到流水线——组织人类生活的贸易路线、货币与方法。"
+    }
+  },
+  "eras": {
+    "Ancient": "古代",
+    "Renaissance": "文艺复兴",
+    "Industrial": "工业时代",
+    "Modern": "现代",
+    "Digital": "数字与航天时代"
+  },
+  "eraRange": {
+    "Ancient": "1400 年以前",
+    "Renaissance": "1400 – 1700",
+    "Industrial": "1700 – 1900",
+    "Modern": "1900 – 1970",
+    "Digital": "1970 至今"
+  },
+  "fieldsIndex": {
+    "title": "按领域",
+    "subtitle": "两大进步家族下的多个领域。选择其一，沿时间追溯它的重大突破。"
+  },
+  "map": {
+    "title": "世界地图",
+    "subtitle": "每项发现与发明发生的地点。",
+    "nearMe": "附近",
+    "locating": "定位中…",
+    "nearTitle": "你身边的科学地标",
+    "denied": "无法获取位置。显示全部地点（以佛罗伦萨为中心）。",
+    "you": "你的位置",
+    "details": "详情"
+  },
+  "detail": {
+    "about": "它是什么，为何重要",
+    "cameFrom": "源自",
+    "viewOnMap": "在地图上查看",
+    "present": "至今",
+    "notFound": "未找到该里程碑。"
+  },
+  "common": {
+    "loading": "加载中…",
+    "back": "返回",
+    "km": "公里",
+    "m": "米"
+  },
+  "status": {
+    "empty": "暂无里程碑。请在 Supabase SQL 编辑器中先运行 db/schema.sql，再运行 db/seed.sql。",
+    "loadError": "数据加载失败。请检查 Supabase 配置。"
+  },
+  "mascot": {
+    "name": "巧巧",
+    "tips": {
+      "home": "你好！我是巧巧，你的向导。选一种方式开始探索吧——我推荐先看时间线！",
+      "timeline": "在「科学与技术」和「经济与工业」之间切换，按领域筛选，或直接跳到某个时代。",
+      "fields": "选择一个领域，按时间顺序查看它的重大突破——点击即可阅读完整故事。",
+      "map": "标记按领域着色。点击「附近」，发现你身边的科学发现。",
+      "milestone": "这就是这个里程碑背后的完整故事。"
+    }
+  }
+}

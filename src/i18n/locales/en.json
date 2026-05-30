@@ -1,0 +1,130 @@
+{
+  "app": {
+    "name": "Milestones of Human Progress",
+    "tagline": "The discoveries, inventions and minds that shaped our world"
+  },
+  "nav": {
+    "home": "Home",
+    "timeline": "Timeline",
+    "fields": "By Field",
+    "map": "World Map"
+  },
+  "home": {
+    "title": "Milestones of Human Progress",
+    "subtitle": "From the wheat fields of antiquity to CRISPR — explore the discoveries, inventions and institutions that have moved humanity forward, across every era, every domain and every corner of the world.",
+    "browseDomain": "Browse a domain",
+    "exploreBy": "Or pick a way to explore",
+    "modes": {
+      "timeline": {
+        "title": "Timeline",
+        "desc": "Travel from antiquity to today through the milestones that changed everything, era by era."
+      },
+      "fields": {
+        "title": "By Field",
+        "desc": "Browse breakthroughs in physics, medicine, computing, space and more."
+      },
+      "map": {
+        "title": "World Map",
+        "desc": "See where history was made — and what was discovered near you."
+      }
+    }
+  },
+  "timeline": {
+    "title": "Timeline",
+    "subtitle": "Scroll through the great discoveries and inventions, grouped by era — from antiquity to the digital age.",
+    "allFields": "All fields",
+    "filterByField": "Filter by field",
+    "jumpToEra": "Jump to era",
+    "bce": "BCE",
+    "ce": "CE",
+    "ledTo": "Led to",
+    "figure": "Key figure",
+    "place": "Place",
+    "readMore": "Read more",
+    "readLess": "Show less",
+    "count_one": "{{count}} milestone",
+    "count_other": "{{count}} milestones"
+  },
+  "fields": {
+    "physics": "Physics",
+    "astronomy": "Astronomy",
+    "medicine": "Medicine",
+    "computing": "Computing",
+    "energy": "Energy",
+    "transport": "Transport",
+    "communication": "Communication",
+    "biology_chemistry": "Biology & Chemistry",
+    "space": "Space",
+    "agriculture": "Agriculture",
+    "trade": "Trade",
+    "finance": "Finance",
+    "industry": "Industry",
+    "labor": "Labor"
+  },
+  "categories": {
+    "all": "All",
+    "science_tech": {
+      "title": "Science & Technology",
+      "desc": "From Archimedes to CRISPR — the discoveries and inventions that reshaped how we see the world."
+    },
+    "economy_industry": {
+      "title": "Economy & Industry",
+      "desc": "From wheat fields to the assembly line — the trade routes, money and methods that have organized human life."
+    }
+  },
+  "eras": {
+    "Ancient": "Antiquity",
+    "Renaissance": "Renaissance",
+    "Industrial": "Industrial Age",
+    "Modern": "Modern Era",
+    "Digital": "Digital & Space Age"
+  },
+  "eraRange": {
+    "Ancient": "Before 1400",
+    "Renaissance": "1400 – 1700",
+    "Industrial": "1700 – 1900",
+    "Modern": "1900 – 1970",
+    "Digital": "1970 – today"
+  },
+  "fieldsIndex": {
+    "title": "By Field",
+    "subtitle": "Domains across two great families of progress. Pick one to follow its breakthroughs through time."
+  },
+  "map": {
+    "title": "World Map",
+    "subtitle": "Where each discovery and invention happened.",
+    "nearMe": "Near me",
+    "locating": "Locating…",
+    "nearTitle": "Scientific landmarks around you",
+    "denied": "Location unavailable. Showing all sites (centered on Florence).",
+    "you": "Your location",
+    "details": "Details"
+  },
+  "detail": {
+    "about": "What it was & why it mattered",
+    "cameFrom": "Came from",
+    "viewOnMap": "Show on the map",
+    "present": "present",
+    "notFound": "Milestone not found."
+  },
+  "common": {
+    "loading": "Loading…",
+    "back": "Back",
+    "km": "km",
+    "m": "m"
+  },
+  "status": {
+    "empty": "No milestones yet. Run db/schema.sql then db/seed.sql in the Supabase SQL editor.",
+    "loadError": "Couldn't load data. Check your Supabase configuration."
+  },
+  "mascot": {
+    "name": "Claudio",
+    "tips": {
+      "home": "Hi! I'm Claudio, your guide. Pick a way to explore — I'd start with the Timeline!",
+      "timeline": "Switch between Science & Tech and Economy & Industry, filter by field, or jump straight to an era.",
+      "fields": "Pick a field to see its breakthroughs in order — each one opens its full story.",
+      "map": "Markers are colored by field. Tap \"Near me\" to find discoveries around you.",
+      "milestone": "Here's the full story behind this milestone."
+    }
+  }
+}

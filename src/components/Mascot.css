@@ -1,0 +1,72 @@
+.mascot {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  max-width: min(280px, 80vw);
+}
+
+.mascot-avatar {
+  border: 2px solid var(--brass-light);
+  background: var(--surface);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+.mascot-avatar:hover {
+  transform: scale(1.06);
+}
+
+.mascot-bubble {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  border-bottom-right-radius: 4px;
+  padding: 0.7rem 0.9rem 0.75rem;
+  box-shadow: var(--shadow);
+  animation: mascot-pop 0.18s ease-out;
+}
+.mascot-bubble p {
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+.mascot-name {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+}
+.mascot-close {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text-soft);
+}
+.mascot-close:hover {
+  color: var(--accent);
+}
+
+@keyframes mascot-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
