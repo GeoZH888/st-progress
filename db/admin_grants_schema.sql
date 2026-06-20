@@ -24,6 +24,24 @@
 --     --         ('00000000-...', 'science_tech');   -- or 'economy_industry'
 -- ============================================================
 
+-- ---------- 0. safety net: ensure is_admin() exists ----------
+-- The grants table policies + can_edit_category() depend on is_admin().
+-- It's normally created by db/admin_schema.sql, but we (re)create it here
+-- so this file can be re-run standalone. Edit the allow-list array if you
+-- want a different super-admin email — same value as in admin_schema.sql.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (auth.jwt() ->> 'email') = any(array['superadmin@ci-world.com']),
+    false
+  );
+$$;
+
 -- ---------- 1. grants table ----------
 create table if not exists stp_admin_grants (
   user_id    uuid not null references auth.users(id) on delete cascade,
