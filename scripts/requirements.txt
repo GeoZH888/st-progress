@@ -1,0 +1,4 @@
+marker-pdf>=0.3.0
+voyageai>=0.3.0
+supabase>=2.7.0
+python-dotenv>=1.0.0

@@ -12,6 +12,8 @@ import MilestonePage from './pages/MilestonePage'
 // Map view is code-split: it pulls in Leaflet, which we don't want in the
 // initial bundle for users who only browse the Timeline / By Field views.
 const MapPage = lazy(() => import('./pages/MapPage'))
+// Math RAG page is code-split: KaTeX CSS + parser only load if visited.
+const MathSearch = lazy(() => import('./pages/MathSearch'))
 
 // Maps the current path to a mascot tip key (trilingual, pulled from i18n).
 function tipKeyForPath(pathname) {
@@ -19,6 +21,7 @@ function tipKeyForPath(pathname) {
   if (pathname.startsWith('/fields') || pathname.startsWith('/field')) return 'fields'
   if (pathname.startsWith('/milestone')) return 'milestone'
   if (pathname.startsWith('/map')) return 'map'
+  if (pathname.startsWith('/math')) return 'math'
   return 'home'
 }
 
@@ -35,6 +38,7 @@ export default function App() {
           <Route path="/field/:field" element={<FieldPage />} />
           <Route path="/milestone/:id" element={<MilestonePage />} />
           <Route path="/map" element={<MapPage />} />
+          <Route path="/math" element={<MathSearch />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>

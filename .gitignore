@@ -28,3 +28,14 @@ pnpm-debug.log*
 
 # netlify
 .netlify
+
+# math RAG: PDFs and marker output are local-only
+pdfs/*
+!pdfs/.gitkeep
+!pdfs/README.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

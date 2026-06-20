@@ -7,7 +7,8 @@
     "home": "Home",
     "timeline": "Cronologia",
     "fields": "Per Campo",
-    "map": "Mappa del Mondo"
+    "map": "Mappa del Mondo",
+    "math": "Ricerca Matematica"
   },
   "home": {
     "title": "Le Tappe del Progresso Umano",
@@ -107,6 +108,19 @@
     "present": "oggi",
     "notFound": "Tappa non trovata."
   },
+  "math": {
+    "title": "Ricerca Matematica",
+    "subtitle": "Fai una domanda su equazioni, teoremi o metodi presenti nei PDF importati. I risultati sono passaggi trovati per somiglianza semantica e renderizzati in LaTeX.",
+    "searchPlaceholder": "es. «derivata di arctan» o «teorema fondamentale del calcolo»",
+    "searchButton": "Cerca",
+    "searching": "Ricerca in corso…",
+    "noResults": "Nessun passaggio corrispondente trovato.",
+    "results_one": "Top {{count}} risultato",
+    "results_other": "Top {{count}} risultati",
+    "page": "p.",
+    "errorEnv": "La ricerca matematica non è ancora configurata — vedi README § Math RAG.",
+    "errorGeneric": "Ricerca fallita. Riprova."
+  },
   "common": {
     "loading": "Caricamento…",
     "back": "Indietro",
@@ -124,7 +138,8 @@
       "timeline": "Passa tra Scienza & Tecnologia ed Economia & Industria, filtra per campo o salta direttamente a un'epoca.",
       "fields": "Scegli un campo per vederne le svolte in ordine — ognuna apre la sua storia completa.",
       "map": "I segnaposto sono colorati per campo. Tocca \"Vicino a me\" per scoprire le invenzioni intorno a te.",
-      "milestone": "Ecco la storia completa dietro questa tappa."
+      "milestone": "Ecco la storia completa dietro questa tappa.",
+      "math": "Chiedimi qualsiasi cosa sui PDF importati — troverò il passaggio più rilevante."
     }
   }
 }

@@ -7,7 +7,8 @@
     "home": "首页",
     "timeline": "时间线",
     "fields": "按领域",
-    "map": "世界地图"
+    "map": "世界地图",
+    "math": "数学检索"
   },
   "home": {
     "title": "人类进步里程碑",
@@ -107,6 +108,19 @@
     "present": "至今",
     "notFound": "未找到该里程碑。"
   },
+  "math": {
+    "title": "数学检索",
+    "subtitle": "针对已导入 PDF 中的公式、定理或方法提出问题。结果通过语义检索得出，并以 LaTeX 渲染。",
+    "searchPlaceholder": "例如：「arctan 的导数」或「微积分基本定理」",
+    "searchButton": "搜索",
+    "searching": "搜索中…",
+    "noResults": "未找到相关段落。",
+    "results_one": "前 {{count}} 条结果",
+    "results_other": "前 {{count}} 条结果",
+    "page": "第",
+    "errorEnv": "数学检索尚未配置 —— 请查看 README 中的 Math RAG 章节。",
+    "errorGeneric": "搜索失败，请重试。"
+  },
   "common": {
     "loading": "加载中…",
     "back": "返回",
@@ -124,7 +138,8 @@
       "timeline": "在「科学与技术」和「经济与工业」之间切换，按领域筛选，或直接跳到某个时代。",
       "fields": "选择一个领域，按时间顺序查看它的重大突破——点击即可阅读完整故事。",
       "map": "标记按领域着色。点击「附近」，发现你身边的科学发现。",
-      "milestone": "这就是这个里程碑背后的完整故事。"
+      "milestone": "这就是这个里程碑背后的完整故事。",
+      "math": "问我任何关于你已导入 PDF 的内容——我会找到最相关的段落。"
     }
   }
 }

@@ -42,3 +42,42 @@ Paste in the Supabase SQL editor, in order:
 ## Mascot art
 
 `巧巧` (ZH) / `Claudio` (IT · EN) currently use inline placeholder SVGs in `src/components/Mascot.jsx`. Drop final artwork into `public/mascots/` and swap the `<*Avatar />` calls per the comment in that file.
+
+## Math RAG
+
+Ask questions about equations, theorems and methods from your own PDFs. Pipeline: **Marker** (PDF → Markdown+LaTeX) → chunk → **Voyage `voyage-3`** embeddings → **Supabase pgvector**. Search runs through a Netlify function so the Voyage key never ships to the browser. Results render with **KaTeX** at `/math`.
+
+**1. Apply the schema** — paste `db/math_schema.sql` into the Supabase SQL editor (after `db/schema.sql`). It enables `pgvector`, creates `stp_math_docs` + `stp_math_chunks`, and defines the `match_math_chunks` RPC.
+
+**2. Set the extra env vars** in `.env`:
+
+```
+SUPABASE_SERVICE_ROLE_KEY=…   # Supabase → Project settings → API → service_role (NEVER ship)
+VOYAGE_API_KEY=…              # voyageai.com
+```
+
+Also add `VOYAGE_API_KEY` to your Netlify site env (Site settings → Environment variables) so the search function works in production.
+
+**3. Install Python deps + ingest PDFs:**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r scripts/requirements.txt
+
+# drop your .pdf files into ./pdfs/, then:
+python scripts/ingest_pdfs.py
+```
+
+Re-running is idempotent — a PDF with the same filename has its old chunks wiped before fresh ones are inserted.
+
+**4. Run locally with the function attached:**
+
+```powershell
+npm install
+netlify dev      # serves Vite + functions together at one port
+```
+
+Plain `npm run dev` skips the Netlify functions emulator, so the `/math` page will return an error.
+
+**5. Deploy:** `netlify deploy --build --prod` — the function is bundled automatically from `netlify/functions/`.

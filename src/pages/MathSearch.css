@@ -1,0 +1,271 @@
+.math-page {
+  max-width: 880px;
+}
+
+.math-search {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.math-input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border, #d6d2c4);
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fff;
+}
+
+.math-input:focus {
+  outline: none;
+  border-color: #2f6fbe;
+  box-shadow: 0 0 0 3px rgba(47, 111, 190, 0.18);
+}
+
+.math-submit {
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: #2f6fbe;
+  cursor: pointer;
+}
+
+.math-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.math-error {
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  background: #fbe9e7;
+  color: #9b2818;
+  border: 1px solid #f3c3bd;
+}
+
+.math-empty,
+.math-count {
+  color: var(--muted, #6e6557);
+  margin-top: 1rem;
+}
+
+.math-results {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.math-card {
+  padding: 1.1rem 1.4rem 1.3rem;
+  border: 1px solid var(--border, #e2dccc);
+  border-radius: 12px;
+  background: #fffefa;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  transform: translateY(6px);
+  animation: math-card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.math-card:hover {
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.07);
+  transform: translateY(-1px);
+}
+
+/* Stagger so each result eases in shortly after the one above. */
+.math-card:nth-child(1)  { animation-delay: 0.00s; }
+.math-card:nth-child(2)  { animation-delay: 0.06s; }
+.math-card:nth-child(3)  { animation-delay: 0.12s; }
+.math-card:nth-child(4)  { animation-delay: 0.18s; }
+.math-card:nth-child(5)  { animation-delay: 0.24s; }
+.math-card:nth-child(6)  { animation-delay: 0.30s; }
+.math-card:nth-child(7)  { animation-delay: 0.36s; }
+.math-card:nth-child(8)  { animation-delay: 0.42s; }
+.math-card:nth-child(n+9) { animation-delay: 0.48s; }
+
+@keyframes math-card-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .math-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .math-card:hover {
+    transform: none;
+  }
+}
+
+.math-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted, #6e6557);
+  flex-wrap: wrap;
+}
+
+.math-card-title {
+  font-weight: 600;
+  color: var(--ink, #2b2419);
+}
+
+.math-card-page {
+  font-variant-numeric: tabular-nums;
+}
+
+.math-card-sim {
+  margin-left: auto;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #eef4fb;
+  color: #2f6fbe;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+}
+
+/* Prose around equations: serif body to complement KaTeX's Computer Modern. */
+.math-content {
+  font-family: "Iowan Old Style", "Palatino Linotype", "URW Palladio L",
+    P052, Palatino, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: var(--ink, #2b2419);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Display equations: their own slightly-tinted block with a left accent rule,
+   bumped up in size and spacing so they read like a textbook. */
+.math-block {
+  display: block;
+  margin: 1.1rem 0;
+  padding: 0.6rem 0.5rem 0.6rem 1rem;
+  background: linear-gradient(180deg, #faf6ec 0%, #f6efe0 100%);
+  border-left: 3px solid #c9a85a;
+  border-radius: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.math-block .katex-display {
+  margin: 0;
+  font-size: 1.18em;
+}
+
+.math-block .katex-display > .katex {
+  text-align: center;
+}
+
+.math-inline {
+  white-space: nowrap;
+  padding: 0 0.05em;
+}
+
+.math-inline .katex {
+  font-size: 1.02em;
+}
+
+/* Quiet scrollbar for overflowing display math (long matrices, etc.). */
+.math-block::-webkit-scrollbar {
+  height: 6px;
+}
+.math-block::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+/* ============================================================
+   "Handwritten ink" reveal — sweeps a soft mask left-to-right
+   across each equation so it looks like it's being drawn.
+   Uses @property so the mask gradient can be animated.
+   ============================================================ */
+
+@property --pen-pos {
+  syntax: '<percentage>';
+  initial-value: 0%;
+  inherits: false;
+}
+
+.math-block .katex-display,
+.math-inline .katex {
+  --pen-pos: 0%;
+  -webkit-mask: linear-gradient(
+    to right,
+    #000 var(--pen-pos),
+    rgba(0, 0, 0, 0.4) calc(var(--pen-pos) + 4%),
+    transparent calc(var(--pen-pos) + 9%)
+  );
+  mask: linear-gradient(
+    to right,
+    #000 var(--pen-pos),
+    rgba(0, 0, 0, 0.4) calc(var(--pen-pos) + 4%),
+    transparent calc(var(--pen-pos) + 9%)
+  );
+  animation: pen-draw 0.95s cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
+}
+
+/* Block equations get the full draw; inline math goes faster so a chunk
+   with many inline symbols doesn't take forever to settle. */
+.math-inline .katex {
+  animation-duration: 0.55s;
+}
+
+@keyframes pen-draw {
+  from { --pen-pos: 0%; }
+  to   { --pen-pos: 100%; }
+}
+
+/* A faint gold "pen tip" rides the leading edge of the block reveal. */
+.math-block {
+  position: relative;
+}
+
+.math-block::after {
+  content: '';
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  width: 2px;
+  left: var(--pen-pos, 0%);
+  background: linear-gradient(to bottom, transparent, #c9a85a 30%, #c9a85a 70%, transparent);
+  pointer-events: none;
+  opacity: 0;
+  animation: pen-tip 0.95s cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes pen-tip {
+  0%   { left: 0%;   opacity: 0; }
+  10%  { opacity: 0.85; }
+  90%  { left: 99%;  opacity: 0.85; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* Honor the OS reduced-motion preference: no draw, no pen tip. */
+@media (prefers-reduced-motion: reduce) {
+  .math-block .katex-display,
+  .math-inline .katex {
+    --pen-pos: 100%;
+    animation: none;
+    -webkit-mask: none;
+    mask: none;
+  }
+  .math-block::after {
+    animation: none;
+    display: none;
+  }
+}

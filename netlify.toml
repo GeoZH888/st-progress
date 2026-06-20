@@ -2,7 +2,19 @@
   command = "npm run build"
   publish = "dist"
 
-# SPA fallback so client-side routes (deep links) resolve to index.html
+[functions]
+  directory = "netlify/functions"
+  # Bundle ESM functions (math-search.js uses `import`).
+  node_bundler = "esbuild"
+
+# Short alias: POST /api/math-search -> /.netlify/functions/math-search
+# Must appear BEFORE the SPA catch-all below.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback so client-side routes (deep links) resolve to index.html.
 [[redirects]]
   from = "/*"
   to = "/index.html"

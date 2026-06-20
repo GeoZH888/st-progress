@@ -15,6 +15,7 @@ export default function Header() {
         <NavLink to="/timeline" className="nav-link">{t('nav.timeline')}</NavLink>
         <NavLink to="/fields" className="nav-link">{t('nav.fields')}</NavLink>
         <NavLink to="/map" className="nav-link">{t('nav.map')}</NavLink>
+        <NavLink to="/math" className="nav-link">{t('nav.math')}</NavLink>
       </nav>
 
       <LanguageSwitcher />

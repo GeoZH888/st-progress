@@ -7,7 +7,8 @@
     "home": "Home",
     "timeline": "Timeline",
     "fields": "By Field",
-    "map": "World Map"
+    "map": "World Map",
+    "math": "Math Search"
   },
   "home": {
     "title": "Milestones of Human Progress",
@@ -107,6 +108,19 @@
     "present": "present",
     "notFound": "Milestone not found."
   },
+  "math": {
+    "title": "Math Search",
+    "subtitle": "Ask a question about equations, theorems or methods from the ingested PDFs. Answers are passages retrieved by semantic search and rendered with LaTeX.",
+    "searchPlaceholder": "e.g. 'derivative of arctan' or 'fundamental theorem of calculus'",
+    "searchButton": "Search",
+    "searching": "Searching…",
+    "noResults": "No matching passages found.",
+    "results_one": "Top {{count}} match",
+    "results_other": "Top {{count}} matches",
+    "page": "p.",
+    "errorEnv": "Math search isn't fully configured — see README § Math RAG.",
+    "errorGeneric": "Search failed. Try again."
+  },
   "common": {
     "loading": "Loading…",
     "back": "Back",
@@ -124,7 +138,8 @@
       "timeline": "Switch between Science & Tech and Economy & Industry, filter by field, or jump straight to an era.",
       "fields": "Pick a field to see its breakthroughs in order — each one opens its full story.",
       "map": "Markers are colored by field. Tap \"Near me\" to find discoveries around you.",
-      "milestone": "Here's the full story behind this milestone."
+      "milestone": "Here's the full story behind this milestone.",
+      "math": "Ask me anything about the PDFs you've ingested — I'll find the most relevant passage."
     }
   }
 }
