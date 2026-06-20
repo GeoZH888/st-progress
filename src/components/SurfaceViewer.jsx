@@ -294,6 +294,8 @@ function AttractorMesh({ surface, palette, params, motion = 0 }) {
   const meshRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { id: palId, rgbStops } = stopsOf(palette)
+  const stopsRef = useRef(rgbStops)
+  useEffect(() => { stopsRef.current = rgbStops }, [rgbStops])
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
     const flat = surface.integrate(surface.points || 6000, params)
@@ -319,8 +321,26 @@ function AttractorMesh({ surface, palette, params, motion = 0 }) {
   useFrame((state, delta) => {
     const g = meshRef.current
     if (!g) return
+    const time = state.clock.elapsedTime
     g.rotation.y += delta * AUTO_ROTATE_SPEED
-    applyMotion(g, state.clock.elapsedTime, seed, motion, 1)
+    applyMotion(g, time, seed, motion, 1)
+
+    // Flow: shift the colormap along the line each frame. The rainbow/
+    // viridis/etc. pattern visibly sweeps from tail to head at ~0.18 Hz
+    // — looks like a river of colour running through the attractor.
+    const col = geometry.attributes.color.array
+    const count = geometry.attributes.position.count
+    const stops = stopsRef.current
+    const offset = (time * 0.18) % 1
+    for (let i = 0; i < count; i++) {
+      const phase = (i / Math.max(1, count - 1)) - offset
+      const t = phase - Math.floor(phase) // wrap to [0,1]
+      const c = rgbAtT(stops, t)
+      col[i * 3] = c.r
+      col[i * 3 + 1] = c.g
+      col[i * 3 + 2] = c.b
+    }
+    geometry.attributes.color.needsUpdate = true
   })
 
   return (
@@ -340,6 +360,8 @@ function PointsMesh({ surface, palette, params, motion = 0 }) {
   const meshRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { id: palId, rgbStops } = stopsOf(palette)
+  const stopsRef = useRef(rgbStops)
+  useEffect(() => { stopsRef.current = rgbStops }, [rgbStops])
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
     const flat = surface.generate(surface.pointCount || 2000, params)
@@ -365,12 +387,31 @@ function PointsMesh({ surface, palette, params, motion = 0 }) {
 
   useFrame((state, delta) => {
     if (!meshRef.current) return
+    const time = state.clock.elapsedTime
     meshRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * 0.6
-    applyMotion(meshRef.current, state.clock.elapsedTime, seed, motion, 1)
+    applyMotion(meshRef.current, time, seed, motion, 1)
+
+    // Flow: shift the colormap radially through the cloud — the pattern
+    // visibly moves from centre to edge over time, giving a sense of
+    // pulse / flow on top of the Vogel bloom animation.
+    const col = geometry.attributes.color.array
+    const count = geometry.attributes.position.count
+    const stops = stopsRef.current
+    const offset = (time * 0.13) % 1
+    for (let i = 0; i < count; i++) {
+      const phase = (i / Math.max(1, count - 1)) - offset
+      const t = phase - Math.floor(phase)
+      const c = rgbAtT(stops, t)
+      col[i * 3] = c.r
+      col[i * 3 + 1] = c.g
+      col[i * 3 + 2] = c.b
+    }
+    geometry.attributes.color.needsUpdate = true
+
     if (surface.animated) {
       const total = geometry.attributes.position.count
       // 0 → 1 → 0 over ~14 seconds; cosine gives smooth eases at both ends.
-      const t = (Math.cos(state.clock.elapsedTime * 0.45) * -0.5) + 0.5
+      const t = (Math.cos(time * 0.45) * -0.5) + 0.5
       const visible = Math.max(1, Math.floor(t * total))
       geometry.setDrawRange(0, visible)
     }
