@@ -138,6 +138,13 @@
     "background": "Background",
     "params": "Parameters",
     "reset": "Reset",
+    "motion": "Motion",
+    "motions": {
+      "off": "Off",
+      "gentle": "Gentle",
+      "lively": "Lively",
+      "wild": "Wild"
+    },
     "askLeo": "Ask Leonardo",
     "askLeoTooltip": "Open the chat with a question about this surface",
     "askLeoPrompt": "Tell me about {{name}} — its history, who first studied it, and where it appears in nature or other parts of mathematics."

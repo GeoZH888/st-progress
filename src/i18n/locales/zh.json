@@ -138,6 +138,13 @@
     "background": "背景",
     "params": "参数",
     "reset": "重置",
+    "motion": "动效",
+    "motions": {
+      "off": "关闭",
+      "gentle": "轻柔",
+      "lively": "灵动",
+      "wild": "狂放"
+    },
     "askLeo": "问问莱昂纳多",
     "askLeoTooltip": "围绕这个曲面与莱昂纳多对话",
     "askLeoPrompt": "给我讲讲「{{name}}」——它的历史、谁最早研究它，以及它在自然界或数学的其他角落如何出现。"

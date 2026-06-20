@@ -138,6 +138,13 @@
     "background": "Sfondo",
     "params": "Parametri",
     "reset": "Reset",
+    "motion": "Movimento",
+    "motions": {
+      "off": "Spento",
+      "gentle": "Delicato",
+      "lively": "Vivace",
+      "wild": "Selvaggio"
+    },
     "askLeo": "Chiedi a Leonardo",
     "askLeoTooltip": "Apri la chat con una domanda su questa superficie",
     "askLeoPrompt": "Parlami di {{name}} — la sua storia, chi l'ha studiata per primo e dove appare in natura o in altri rami della matematica."

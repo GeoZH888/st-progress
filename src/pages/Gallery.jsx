@@ -16,7 +16,18 @@ import './Gallery.css'
 const SurfaceViewer = lazy(() => import('../components/SurfaceViewer'))
 
 const RENDER_MODES = ['solid', 'wireframe', 'both', 'points']
-const LS_KEYS = { palette: 'stp-gallery-palette', background: 'stp-gallery-bg', mode: 'stp-gallery-mode' }
+const MOTION_LEVELS = [
+  { id: 'off',    value: 0    },
+  { id: 'gentle', value: 0.35 },
+  { id: 'lively', value: 0.7  },
+  { id: 'wild',   value: 1.0  }
+]
+const LS_KEYS = {
+  palette: 'stp-gallery-palette',
+  background: 'stp-gallery-bg',
+  mode: 'stp-gallery-mode',
+  motion: 'stp-gallery-motion'
+}
 
 function supportsRenderMode(surface) {
   return surface.kind === 'morph' || surface.kind === 'builtin'
@@ -56,6 +67,8 @@ export default function Gallery() {
   const [renderMode, setRenderMode] = useState(() => getLS(LS_KEYS.mode, 'solid'))
   const [paletteId, setPaletteId] = useState(() => getLS(LS_KEYS.palette, DEFAULT_PALETTE))
   const [backgroundId, setBackgroundId] = useState(() => getLS(LS_KEYS.background, DEFAULT_BACKGROUND))
+  const [motionId, setMotionId] = useState(() => getLS(LS_KEYS.motion, 'gentle'))
+  const motionValue = (MOTION_LEVELS.find((m) => m.id === motionId) || MOTION_LEVELS[1]).value
 
   const surface = getSurface(activeId)
   const lang = i18n.language
@@ -73,6 +86,7 @@ export default function Gallery() {
   useEffect(() => { setLS(LS_KEYS.mode, renderMode) }, [renderMode])
   useEffect(() => { setLS(LS_KEYS.palette, paletteId) }, [paletteId])
   useEffect(() => { setLS(LS_KEYS.background, backgroundId) }, [backgroundId])
+  useEffect(() => { setLS(LS_KEYS.motion, motionId) }, [motionId])
 
   function updateParam(key, value) {
     setParamsBySurface((m) => ({
@@ -130,6 +144,20 @@ export default function Gallery() {
             </div>
           )}
 
+          <div className="gallery-style-bar" role="group" aria-label={t('gallery.motion')}>
+            <span className="gallery-style-label">{t('gallery.motion')}:</span>
+            {MOTION_LEVELS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                className={`gallery-style-chip${motionId === m.id ? ' on' : ''}`}
+                onClick={() => setMotionId(m.id)}
+              >
+                {t(`gallery.motions.${m.id}`)}
+              </button>
+            ))}
+          </div>
+
           <div className="gallery-theme-bar">
             <div className="gallery-theme-row">
               <span className="gallery-style-label">{t('gallery.palette')}:</span>
@@ -169,6 +197,7 @@ export default function Gallery() {
                 paletteId={paletteId}
                 backgroundId={backgroundId}
                 params={params}
+                motion={motionValue}
               />
             </Suspense>
           </div>
