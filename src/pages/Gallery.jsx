@@ -7,6 +7,7 @@ import {
   loadCustomSurfaces, addCustomSurface, removeCustomSurface,
   customToSurface, compileExpr
 } from '../lib/customSurfaces'
+import { fetchSharedSurfaces, sharedRowToSurface } from '../lib/surfacesDb'
 import {
   PALETTES, BACKGROUNDS,
   DEFAULT_PALETTE, DEFAULT_BACKGROUND,
@@ -170,8 +171,18 @@ export default function Gallery() {
   const [customs, setCustoms] = useState(() => loadCustomSurfaces())
   const [addOpen, setAddOpen] = useState(false)
 
-  // Compile each custom record into a surface object; skip the broken ones
-  // (they stay in storage but don't show up in the picker — user can delete).
+  // ---- Shared site-wide surfaces fetched from Supabase ----
+  const [sharedRows, setSharedRows] = useState([])
+  useEffect(() => {
+    let active = true
+    fetchSharedSurfaces()
+      .then((rows) => { if (active) setSharedRows(rows) })
+      .catch(() => { /* table missing or RLS issue → just skip */ })
+    return () => { active = false }
+  }, [])
+
+  // Compile each custom / shared record into a surface object; skip the
+  // broken ones (they stay in storage but don't show up in the picker).
   const compiledCustoms = useMemo(() => {
     const out = []
     for (const c of customs) {
@@ -180,11 +191,23 @@ export default function Gallery() {
     return out
   }, [customs])
 
-  const allSurfaces = useMemo(() => [...SURFACES, ...compiledCustoms], [compiledCustoms])
+  const compiledShared = useMemo(() => {
+    const out = []
+    for (const row of sharedRows) {
+      try { out.push(sharedRowToSurface(row)) } catch { /* broken, skip */ }
+    }
+    return out
+  }, [sharedRows])
+
+  const allSurfaces = useMemo(
+    () => [...SURFACES, ...compiledShared, ...compiledCustoms],
+    [compiledShared, compiledCustoms]
+  )
 
   function findActive() {
     return allSurfaces.find((s) => s.id === activeId) || allSurfaces[0]
   }
+  const surface = findActive()
   const lang = i18n.language
   const surfaceName = localizedName(surface, lang)
   const palette = paletteById(paletteId)
@@ -245,6 +268,9 @@ export default function Gallery() {
                 >
                   <span className="gallery-pick-dot" aria-hidden="true" />
                   <span>{localizedName(s, lang)}</span>
+                  {s.isShared && (
+                    <span className="gallery-pick-star" title={t('gallery.shared.badge')}>🌐</span>
+                  )}
                   {s.isCustom && (
                     <>
                       <span className="gallery-pick-star" title={t('gallery.custom.badge')}>★</span>

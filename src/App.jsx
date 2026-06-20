@@ -25,6 +25,7 @@ const AdminMilestones = lazy(() => import('./pages/admin/MilestonesAdmin'))
 const AdminFigures   = lazy(() => import('./pages/admin/FiguresAdmin'))
 const AdminLocations = lazy(() => import('./pages/admin/LocationsAdmin'))
 const AdminRag       = lazy(() => import('./pages/admin/RagAdmin'))
+const AdminSurfaces  = lazy(() => import('./pages/admin/SurfacesAdmin'))
 
 // Maps the current path to a mascot tip key (trilingual, pulled from i18n).
 function tipKeyForPath(pathname) {
@@ -71,6 +72,7 @@ export default function App() {
             <Route path="figures" element={<AdminFigures />} />
             <Route path="locations" element={<AdminLocations />} />
             <Route path="rag" element={<AdminRag />} />
+            <Route path="surfaces" element={<AdminSurfaces />} />
           </Route>
 
           <Route path="*" element={<Home />} />

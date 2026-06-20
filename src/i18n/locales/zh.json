@@ -165,6 +165,9 @@
       "tplShell": "贝壳",
       "askLeo": "让莱昂纳多给个公式",
       "errNoName": "请先给曲面起个名字。"
+    },
+    "shared": {
+      "badge": "共享曲面（在 /admin 管理）"
     }
   },
   "common": {
@@ -225,7 +228,8 @@
       "milestones": "里程碑",
       "figures": "人物",
       "locations": "地点",
-      "rag": "RAG 文库"
+      "rag": "RAG 文库",
+      "surfaces": "3D 几何馆"
     },
     "dashboard": {
       "title": "概览",
@@ -234,7 +238,8 @@
       "figures": "人物",
       "locations": "地点",
       "pdfs": "已导入 PDF",
-      "chunks": "已嵌入分块"
+      "chunks": "已嵌入分块",
+      "surfaces": "几何馆曲面"
     },
     "milestones": {
       "heading": "里程碑",
@@ -301,6 +306,16 @@
       "label": "AI",
       "translateOthers": "将此内容翻译到另外两种语言",
       "needsSource": "请先填写源语言内容"
+    },
+    "surfaces": {
+      "heading": "3D 几何馆曲面",
+      "count_one": "共 {{count}} 个共享曲面",
+      "count_other": "共 {{count}} 个共享曲面",
+      "name": "显示名称",
+      "equation": "LaTeX 公式（可选）",
+      "sort": "排序号",
+      "askLeo": "让莱昂纳多给个公式",
+      "hint": "u 和 v 取值在 [0, 2π]。可用函数：sin、cos、sinh、cosh、sqrt、exp、log、pow、abs、PI、E、TAU。无法编译的表达式将被拒绝保存。"
     }
   }
 }

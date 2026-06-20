@@ -165,6 +165,9 @@
       "tplShell": "Shell",
       "askLeo": "Ask Leonardo for a formula",
       "errNoName": "Please give the surface a name."
+    },
+    "shared": {
+      "badge": "Shared (managed in /admin)"
     }
   },
   "common": {
@@ -225,7 +228,8 @@
       "milestones": "Milestones",
       "figures": "Figures",
       "locations": "Locations",
-      "rag": "RAG library"
+      "rag": "RAG library",
+      "surfaces": "3D Gallery"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -234,7 +238,8 @@
       "figures": "Figures",
       "locations": "Locations",
       "pdfs": "Ingested PDFs",
-      "chunks": "Chunks (embedded)"
+      "chunks": "Chunks (embedded)",
+      "surfaces": "Gallery surfaces"
     },
     "milestones": {
       "heading": "Milestones",
@@ -301,6 +306,16 @@
       "label": "AI",
       "translateOthers": "Translate this into the other two languages",
       "needsSource": "Type the source language first"
+    },
+    "surfaces": {
+      "heading": "3D Gallery surfaces",
+      "count_one": "{{count}} shared surface",
+      "count_other": "{{count}} shared surfaces",
+      "name": "Display name",
+      "equation": "LaTeX equation (optional)",
+      "sort": "Sort #",
+      "askLeo": "Ask Leonardo for a formula",
+      "hint": "u and v come in [0, 2π]. Allowed: sin, cos, sinh, cosh, sqrt, exp, log, pow, abs, PI, E, TAU. Save will refuse expressions that don't compile."
     }
   }
 }

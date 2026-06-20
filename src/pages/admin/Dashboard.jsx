@@ -8,7 +8,8 @@ const TABLES = [
   { key: 'figures',        table: 'stp_figures',      to: '/admin/figures',    emoji: '🧑‍🔬' },
   { key: 'locations',      table: 'stp_locations',    to: '/admin/locations',  emoji: '📍' },
   { key: 'pdfs',           table: 'stp_math_docs',    to: '/admin/rag',        emoji: '📄' },
-  { key: 'chunks',         table: 'stp_math_chunks',  to: '/admin/rag',        emoji: '🧩' }
+  { key: 'chunks',         table: 'stp_math_chunks',  to: '/admin/rag',        emoji: '🧩' },
+  { key: 'surfaces',       table: 'stp_surfaces',     to: '/admin/surfaces',   emoji: '🌐' }
 ]
 
 export default function Dashboard() {

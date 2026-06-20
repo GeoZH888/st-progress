@@ -39,6 +39,9 @@ export default function AdminLayout() {
           <NavLink to="/admin/rag" className="admin-nav-link">
             <span aria-hidden="true">📚</span> {t('admin.nav.rag')}
           </NavLink>
+          <NavLink to="/admin/surfaces" className="admin-nav-link">
+            <span aria-hidden="true">🌐</span> {t('admin.nav.surfaces')}
+          </NavLink>
         </nav>
 
         <footer className="admin-sidebar-foot">

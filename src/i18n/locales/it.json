@@ -165,6 +165,9 @@
       "tplShell": "Conchiglia",
       "askLeo": "Chiedi a Leonardo una formula",
       "errNoName": "Dai prima un nome alla superficie."
+    },
+    "shared": {
+      "badge": "Condivisa (gestita in /admin)"
     }
   },
   "common": {
@@ -225,7 +228,8 @@
       "milestones": "Tappe",
       "figures": "Figure",
       "locations": "Luoghi",
-      "rag": "Libreria RAG"
+      "rag": "Libreria RAG",
+      "surfaces": "Galleria 3D"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -234,7 +238,8 @@
       "figures": "Figure",
       "locations": "Luoghi",
       "pdfs": "PDF importati",
-      "chunks": "Chunk (incorporati)"
+      "chunks": "Chunk (incorporati)",
+      "surfaces": "Superfici galleria"
     },
     "milestones": {
       "heading": "Tappe",
@@ -301,6 +306,16 @@
       "label": "AI",
       "translateOthers": "Traduci nelle altre due lingue",
       "needsSource": "Compila prima la lingua di origine"
+    },
+    "surfaces": {
+      "heading": "Superfici della galleria 3D",
+      "count_one": "{{count}} superficie condivisa",
+      "count_other": "{{count}} superfici condivise",
+      "name": "Nome visualizzato",
+      "equation": "Equazione LaTeX (opzionale)",
+      "sort": "Ordine",
+      "askLeo": "Chiedi a Leonardo una formula",
+      "hint": "u e v sono in [0, 2π]. Funzioni ammesse: sin, cos, sinh, cosh, sqrt, exp, log, pow, abs, PI, E, TAU. Espressioni che non compilano non saranno salvate."
     }
   }
 }
