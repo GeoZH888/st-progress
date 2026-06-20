@@ -45,7 +45,7 @@ Hidden at `/admin` — Supabase Auth (email + password) protects the route, and 
 
 **One-time setup:**
 
-1. Paste `db/admin_schema.sql` into the Supabase SQL editor (after the other migrations). It creates `is_admin()` and RLS policies on every `stp_*` table.
+1. Paste `db/admin_schema.sql` into the Supabase SQL editor (after the other migrations). It creates `is_admin()` and RLS policies on every `stp_*` table. Then (optionally) paste `db/admin_grants_schema.sql` if you want per-category sub-admins.
 2. Create the admin user. Either:
    - **From the dashboard** — Authentication → Users → **Add user**, email = `superadmin@ci-world.com`, choose a strong password, tick *Auto Confirm User*; **or**
    - **From the CLI** — make sure `SUPABASE_SERVICE_ROLE_KEY` is in `.env`, then run `python scripts/create_admin_user.py`. The script creates the user (or resets the password if it already exists) and auto-confirms the email so login works immediately. Edit the constants at the top of the file to change the email/password.
@@ -62,6 +62,22 @@ Two ways to ingest a PDF, both writing to the same `stp_math_chunks` table so se
 
 - **From the browser**, in the RAG admin tab. PDF.js renders each page to an image, Claude Sonnet 4.6 vision extracts Markdown (with LaTeX), then chunks are embedded via Voyage. Needs `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` to be set in **Netlify** env (not just `.env`).
 - **From the CLI**, for bulk runs or local-only PDFs. Drop the file into `./pdfs/` and run `python scripts/ingest_pdfs.py` (uses Marker locally — heavier, more accurate on dense math, no per-page API cost).
+
+### Sub-admins (per super-category)
+
+`db/admin_grants_schema.sql` adds a `stp_admin_grants(user_id, category)` table plus a `can_edit_category()` SQL helper. The super-admin email in `is_admin()` keeps full access; sub-admins can edit milestones inside their granted category (`science_tech` or `economy_industry`) and edit/delete the figures + locations they themselves create (`created_by = auth.uid()`). Math RAG stays super-admin-only.
+
+To grant a sub-admin (no UI yet — SQL only):
+
+```sql
+-- 1. Create the user in Supabase Dashboard → Auth → Users (tick Auto Confirm).
+-- 2. Look up their id:
+select id from auth.users where email = 'tech-admin@ci-world.com';
+
+-- 3. Grant one or both categories:
+insert into stp_admin_grants (user_id, category) values
+  ('00000000-...', 'science_tech');
+```
 
 ## Mascot art
 
