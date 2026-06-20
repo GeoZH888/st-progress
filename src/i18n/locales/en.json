@@ -8,7 +8,8 @@
     "timeline": "Timeline",
     "fields": "By Field",
     "map": "World Map",
-    "math": "Math Search"
+    "math": "Math Search",
+    "gallery": "3D Gallery"
   },
   "home": {
     "title": "Milestones of Human Progress",
@@ -121,6 +122,12 @@
     "errorEnv": "Math search isn't fully configured — see README § Math RAG.",
     "errorGeneric": "Search failed. Try again."
   },
+  "gallery": {
+    "title": "3D Math Gallery",
+    "subtitle": "Six classics from differential geometry — minimal surfaces, knots, non-orientable manifolds. Rotate them, watch them morph. Built with Three.js and KaTeX.",
+    "pickerLabel": "Pick a surface",
+    "hint": "Drag to rotate · scroll to zoom"
+  },
   "common": {
     "loading": "Loading…",
     "back": "Back",
@@ -139,7 +146,8 @@
       "fields": "Pick a field to see its breakthroughs in order — each one opens its full story.",
       "map": "Markers are colored by field. Tap \"Near me\" to find discoveries around you.",
       "milestone": "Here's the full story behind this milestone.",
-      "math": "Ask me anything about the PDFs you've ingested — I'll find the most relevant passage."
+      "math": "Ask me anything about the PDFs you've ingested — I'll find the most relevant passage.",
+      "gallery": "Pick a surface on the left — drag the viewport to spin it, and watch the Catenoid ↔ Helicoid morph for the real magic."
     }
   }
 }

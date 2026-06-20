@@ -14,6 +14,8 @@ import MilestonePage from './pages/MilestonePage'
 const MapPage = lazy(() => import('./pages/MapPage'))
 // Math RAG page is code-split: KaTeX CSS + parser only load if visited.
 const MathSearch = lazy(() => import('./pages/MathSearch'))
+// 3D gallery is code-split: three.js + r3f + drei stay out of the main bundle.
+const Gallery = lazy(() => import('./pages/Gallery'))
 
 // Maps the current path to a mascot tip key (trilingual, pulled from i18n).
 function tipKeyForPath(pathname) {
@@ -22,6 +24,7 @@ function tipKeyForPath(pathname) {
   if (pathname.startsWith('/milestone')) return 'milestone'
   if (pathname.startsWith('/map')) return 'map'
   if (pathname.startsWith('/math')) return 'math'
+  if (pathname.startsWith('/gallery')) return 'gallery'
   return 'home'
 }
 
@@ -39,6 +42,7 @@ export default function App() {
           <Route path="/milestone/:id" element={<MilestonePage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/math" element={<MathSearch />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>

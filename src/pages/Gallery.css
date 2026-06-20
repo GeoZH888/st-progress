@@ -1,0 +1,145 @@
+.gallery-page {
+  max-width: 1080px;
+}
+
+.gallery-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) 1fr;
+  gap: 1.4rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 720px) {
+  .gallery-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- picker (left) ---------- */
+.gallery-picker {
+  align-self: start;
+  padding: 0.4rem;
+  background: #fffefa;
+  border: 1px solid var(--border, #e2dccc);
+  border-radius: 12px;
+}
+
+.gallery-picker ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.gallery-pick {
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 8px;
+  font: inherit;
+  color: var(--ink, #2b2419);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.gallery-pick:hover {
+  background: #f6efe0;
+}
+
+.gallery-pick.on {
+  background: linear-gradient(180deg, #faf6ec, #f3e6c5);
+  border-color: #c9a85a;
+  transform: translateX(2px);
+}
+
+.gallery-pick-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #d6cfba;
+  flex-shrink: 0;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gallery-pick.on .gallery-pick-dot {
+  background: #c9a85a;
+  box-shadow: 0 0 0 3px rgba(201, 168, 90, 0.25);
+}
+
+.gallery-hint {
+  margin: 0.6rem 0.5rem 0.2rem;
+  font-size: 0.78rem;
+  color: var(--muted, #6e6557);
+  line-height: 1.4;
+}
+
+/* ---------- viewport (right) ---------- */
+.gallery-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 360px;
+  background: #1c1814;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  animation: viewport-fade-in 0.5s ease-out;
+}
+
+.gallery-viewport canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  outline: none;
+}
+
+@keyframes viewport-fade-in {
+  from { opacity: 0; transform: scale(0.985); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-viewport,
+  .gallery-pick {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ---------- detail panel (equation under the viewport) ---------- */
+.gallery-detail {
+  margin-top: 1.5rem;
+  padding: 1.2rem 1.4rem;
+  background: linear-gradient(180deg, #faf6ec 0%, #f6efe0 100%);
+  border-left: 3px solid #c9a85a;
+  border-radius: 4px;
+}
+
+.gallery-name {
+  margin: 0 0 0.6rem;
+  font-size: 1.25rem;
+  color: var(--ink, #2b2419);
+}
+
+.gallery-equation {
+  overflow-x: auto;
+  font-size: 1.05rem;
+}
+
+.gallery-equation .katex-display {
+  margin: 0;
+}
+
+.gallery-equation::-webkit-scrollbar {
+  height: 6px;
+}
+.gallery-equation::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 3px;
+}
