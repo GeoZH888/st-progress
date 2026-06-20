@@ -150,6 +150,22 @@
       "gallery": "Scegli una superficie a sinistra — trascina il viewport per ruotarla, e guarda il morph Catenoide ↔ Elicoide per la vera magia."
     }
   },
+  "leo": {
+    "openChat": "Chatta con {{name}}",
+    "subtitle": "La tua guida AI",
+    "greet": "Salve! Sono Leonardo. Chiedimi qualsiasi cosa sulle tappe, sulla matematica, sulla scienza o sulla storia — oppure inviami una foto e chiedimi cosa vedi. Puoi anche toccare il microfono e parlarmi.",
+    "placeholder": "Chiedi a Leonardo…",
+    "send": "Invia",
+    "camera": "Apri fotocamera",
+    "upload": "Carica un'immagine",
+    "mic": "Parla",
+    "clear": "Pulisci chat",
+    "close": "Chiudi",
+    "removeImage": "Rimuovi immagine",
+    "snap": "Scatta",
+    "cancel": "Annulla",
+    "cameraUnsupported": "Fotocamera non disponibile in questo browser."
+  },
   "admin": {
     "shellTitle": "Admin",
     "backToSite": "Torna al sito",

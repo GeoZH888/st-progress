@@ -1,52 +1,45 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './Mascot.css'
+
+// Lazy: the chat panel pulls its own CSS and is only mounted once the user
+// clicks Leonardo. Saves ~5 KB from the initial bundle.
+const LeonardoChat = lazy(() => import('./LeonardoChat'))
 
 /*
  * Mascot / AI-assistant: Leonardo
  * --------------------------------
- * One guide for all three UI languages — a Renaissance polymath fits the site
- * theme (history of progress) and the math features (scroll + flask in his
- * hands map straight to /math and /gallery).
+ * One Renaissance polymath as the guide across all three UI languages.
+ * Clicking the avatar opens the LeonardoChat side panel (text + camera + file
+ * + voice). The avatar art lives at public/mascots/leonardo.png and is
+ * rendered free of any container circle so it reads as a standalone figure.
  *
- * Avatar art lives at public/mascots/leonardo.png and is rendered free of
- * any container circle / border so the figure reads as a standalone character.
- *
- * The speech-bubble tip is trilingual and pulled from i18n
- * (mascot.tips.<tipKey>), so pass a `tipKey` matching the current page
- * (e.g. "home", "timeline", "map", "math", "gallery").
+ * `tipKey` is still accepted for backwards compatibility but is no longer
+ * used to render a passive bubble — the chat greeting plays that role now.
  */
 
-export default function Mascot({ tipKey = 'home' }) {
+export default function Mascot() {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(true)
-
-  const name = t('mascot.name') // "Leonardo" / "莱昂纳多"
-  const tip = t(`mascot.tips.${tipKey}`, { defaultValue: t('mascot.tips.home') })
+  const [chatOpen, setChatOpen] = useState(false)
+  const name = t('mascot.name')
 
   return (
-    <div className="mascot" data-mascot="leonardo">
-      {open && (
-        <div className="mascot-bubble" role="status">
-          <button
-            className="mascot-close"
-            aria-label="Close"
-            onClick={() => setOpen(false)}
-          >
-            ×
-          </button>
-          <strong className="mascot-name">{name}</strong>
-          <p>{tip}</p>
-        </div>
+    <>
+      <div className="mascot" data-mascot="leonardo">
+        <button
+          className="mascot-avatar"
+          title={name}
+          aria-label={t('leo.openChat', { name })}
+          onClick={() => setChatOpen(true)}
+        >
+          <img src="/mascots/leonardo.png" alt={name} className="mascot-figure" />
+        </button>
+      </div>
+      {chatOpen && (
+        <Suspense fallback={null}>
+          <LeonardoChat open={chatOpen} onClose={() => setChatOpen(false)} />
+        </Suspense>
       )}
-      <button
-        className="mascot-avatar"
-        title={name}
-        aria-label={name}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <img src="/mascots/leonardo.png" alt={name} className="mascot-figure" />
-      </button>
-    </div>
+    </>
   )
 }

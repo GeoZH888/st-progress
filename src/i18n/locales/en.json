@@ -150,6 +150,22 @@
       "gallery": "Pick a surface on the left — drag the viewport to spin it, and watch the Catenoid ↔ Helicoid morph for the real magic."
     }
   },
+  "leo": {
+    "openChat": "Chat with {{name}}",
+    "subtitle": "Your AI guide",
+    "greet": "Salve! I'm Leonardo. Ask me anything about the milestones, the math, the science, the history — or send me a photo and ask what you're seeing. You can also tap the mic and speak.",
+    "placeholder": "Ask Leonardo anything…",
+    "send": "Send",
+    "camera": "Open camera",
+    "upload": "Upload an image",
+    "mic": "Speak",
+    "clear": "Clear chat",
+    "close": "Close",
+    "removeImage": "Remove image",
+    "snap": "Snap",
+    "cancel": "Cancel",
+    "cameraUnsupported": "Camera not available in this browser."
+  },
   "admin": {
     "shellTitle": "Admin",
     "backToSite": "Back to site",
