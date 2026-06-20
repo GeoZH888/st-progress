@@ -134,6 +134,10 @@
       "both": "Solido + filo",
       "points": "Punti"
     },
+    "palette": "Tavolozza",
+    "background": "Sfondo",
+    "params": "Parametri",
+    "reset": "Reset",
     "askLeo": "Chiedi a Leonardo",
     "askLeoTooltip": "Apri la chat con una domanda su questa superficie",
     "askLeoPrompt": "Parlami di {{name}} — la sua storia, chi l'ha studiata per primo e dove appare in natura o in altri rami della matematica."

@@ -116,6 +116,103 @@
   font-weight: 600;
 }
 
+/* ---------- theme bar (palettes + backgrounds) ---------- */
+.gallery-theme-bar {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.55rem 0.7rem;
+  background: #fffefa;
+  border: 1px solid var(--border, #e2dccc);
+  border-radius: 10px;
+}
+.gallery-theme-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.gallery-swatch {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.gallery-swatch:hover { transform: scale(1.07); }
+.gallery-swatch.on {
+  border-color: #2b2419;
+  box-shadow: 0 0 0 2px rgba(201, 168, 90, 0.45);
+}
+.palette-swatch {
+  width: 56px;
+  height: 22px;
+  border-radius: 12px;
+}
+.bg-swatch {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---------- per-surface parameter sliders ---------- */
+.gallery-params-bar {
+  padding: 0.55rem 0.8rem 0.7rem;
+  background: #fffefa;
+  border: 1px solid var(--border, #e2dccc);
+  border-radius: 10px;
+}
+.gallery-params-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.gallery-params-reset {
+  background: transparent;
+  border: 1px solid var(--border, #e2dccc);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--muted, #6e6557);
+  cursor: pointer;
+}
+.gallery-params-reset:hover {
+  background: #f6efe0;
+  color: var(--ink, #2b2419);
+}
+
+.gallery-params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem 0.9rem;
+}
+.gallery-param {
+  display: grid;
+  gap: 0.15rem;
+}
+.gallery-param-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.82rem;
+  color: var(--ink, #2b2419);
+}
+.gallery-param-label code {
+  font-size: 0.78rem;
+  color: #6b4a14;
+  background: #faf6ec;
+  padding: 0 0.35rem;
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.gallery-param input[type='range'] {
+  width: 100%;
+  accent-color: #c9a85a;
+}
+
 /* ---------- viewport (right) ---------- */
 .gallery-viewport {
   position: relative;

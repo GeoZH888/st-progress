@@ -23,7 +23,16 @@ export const SURFACES = [
     equation:
       '\\begin{aligned}x &= \\cos(pu)\\,(R + r\\cos(qu))\\\\ y &= \\sin(pu)\\,(R + r\\cos(qu))\\\\ z &= r\\sin(qu)\\end{aligned}',
     kind: 'builtin',
-    build: (THREE) => new THREE.TorusKnotGeometry(1.1, 0.34, 240, 32, 3, 2)
+    params: [
+      { key: 'p', label: 'p', min: 1, max: 8, step: 1, default: 3 },
+      { key: 'q', label: 'q', min: 1, max: 8, step: 1, default: 2 },
+      { key: 'R', label: 'R', min: 0.6, max: 2, step: 0.05, default: 1.1, precision: 2 },
+      { key: 'r', label: 'r', min: 0.1, max: 0.9, step: 0.02, default: 0.34, precision: 2 }
+    ],
+    build: (THREE, params = {}) => {
+      const { p = 3, q = 2, R = 1.1, r = 0.34 } = params
+      return new THREE.TorusKnotGeometry(R, r, 240, 32, p, q)
+    }
   },
 
   // ----------------------------------------------------------------------
@@ -36,10 +45,13 @@ export const SURFACES = [
       '\\begin{aligned}x &= (R + \\cos\\tfrac{u}{2}\\sin v - \\sin\\tfrac{u}{2}\\sin 2v)\\cos u\\\\ y &= (R + \\cos\\tfrac{u}{2}\\sin v - \\sin\\tfrac{u}{2}\\sin 2v)\\sin u\\\\ z &= \\sin\\tfrac{u}{2}\\sin v + \\cos\\tfrac{u}{2}\\sin 2v\\end{aligned}',
     kind: 'parametric',
     uvSegments: 160,
-    sampler: (u, v, target) => {
+    params: [
+      { key: 'R', label: 'R', min: 0.5, max: 3, step: 0.1, default: 1.6, precision: 1 }
+    ],
+    sampler: (u, v, target, params = {}) => {
+      const { R = 1.6 } = params
       const U = u * 2 * PI
       const V = v * 2 * PI
-      const R = 1.6
       const s = R + cos(U / 2) * sin(V) - sin(U / 2) * sin(2 * V)
       target.set(s * cos(U), s * sin(U), sin(U / 2) * sin(V) + cos(U / 2) * sin(2 * V))
     }
@@ -55,11 +67,16 @@ export const SURFACES = [
       '\\begin{aligned}x &= \\bigl(1 + \\tfrac{v}{2}\\cos\\tfrac{u}{2}\\bigr)\\cos u\\\\ y &= \\bigl(1 + \\tfrac{v}{2}\\cos\\tfrac{u}{2}\\bigr)\\sin u\\\\ z &= \\tfrac{v}{2}\\sin\\tfrac{u}{2}\\end{aligned}',
     kind: 'parametric',
     uvSegments: 120,
-    sampler: (u, v, target) => {
+    params: [
+      { key: 'R', label: 'R', min: 0.6, max: 3, step: 0.1, default: 1.6, precision: 1 },
+      { key: 'twists', label: 'twists', min: 1, max: 5, step: 1, default: 1 }
+    ],
+    sampler: (u, v, target, params = {}) => {
+      const { R = 1.6, twists = 1 } = params
       const U = u * 2 * PI
-      const V = (v - 0.5) * 2 // -1..1
-      const r = 1.6 + (V / 2) * cos(U / 2)
-      target.set(r * cos(U), r * sin(U), (V / 2) * sin(U / 2))
+      const V = (v - 0.5) * 2
+      const r = R + (V / 2) * cos((U * twists) / 2)
+      target.set(r * cos(U), r * sin(U), (V / 2) * sin((U * twists) / 2))
     }
   },
 
@@ -138,9 +155,18 @@ export const SURFACES = [
     name_en: 'Trefoil knot (2, 3)',
     name_it: 'Nodo trifoglio (2, 3)',
     name_zh: '三叶纽结 (2, 3)',
-    equation: '\\text{Torus knot } T(2,3) \\;:\\; p=2,\\ q=3',
+    equation: '\\text{Torus knot } T(p,q)',
     kind: 'builtin',
-    build: (THREE) => new THREE.TorusKnotGeometry(1.05, 0.36, 220, 28, 2, 3)
+    params: [
+      { key: 'p', label: 'p', min: 1, max: 8, step: 1, default: 2 },
+      { key: 'q', label: 'q', min: 1, max: 8, step: 1, default: 3 },
+      { key: 'R', label: 'R', min: 0.6, max: 2, step: 0.05, default: 1.05, precision: 2 },
+      { key: 'r', label: 'r', min: 0.1, max: 0.9, step: 0.02, default: 0.36, precision: 2 }
+    ],
+    build: (THREE, params = {}) => {
+      const { p = 2, q = 3, R = 1.05, r = 0.36 } = params
+      return new THREE.TorusKnotGeometry(R, r, 220, 28, p, q)
+    }
   },
 
   // ----------------------------------------------------------------------
@@ -155,11 +181,14 @@ export const SURFACES = [
       '\\begin{aligned}\\dot{x}&=\\sigma(y-x)\\\\ \\dot{y}&=x(\\rho-z)-y\\\\ \\dot{z}&=xy-\\beta z\\end{aligned}\\;\\;(\\sigma{=}10,\\rho{=}28,\\beta{=}\\tfrac{8}{3})',
     kind: 'attractor',
     points: 8000,
-    integrate: (n) => {
+    params: [
+      { key: 'sigma', label: 'σ', min: 1,   max: 30, step: 0.5,  default: 10,       precision: 1 },
+      { key: 'rho',   label: 'ρ', min: 1,   max: 60, step: 0.5,  default: 28,       precision: 1 },
+      { key: 'beta',  label: 'β', min: 0.5, max: 4,  step: 0.05, default: 8 / 3,    precision: 2 }
+    ],
+    integrate: (n, params = {}) => {
       const dt = 0.01
-      const sigma = 10
-      const rho = 28
-      const beta = 8 / 3
+      const { sigma = 10, rho = 28, beta = 8 / 3 } = params
       const out = new Float32Array(n * 3)
       let x = 0.1, y = 0, z = 0
       for (let i = 0; i < n; i++) {
@@ -190,9 +219,14 @@ export const SURFACES = [
       '\\begin{aligned}\\dot{x}&=-y-z\\\\ \\dot{y}&=x+ay\\\\ \\dot{z}&=b+z(x-c)\\end{aligned}\\;\\;(a{=}b{=}0.2,\\,c{=}5.7)',
     kind: 'attractor',
     points: 7000,
-    integrate: (n) => {
+    params: [
+      { key: 'a', label: 'a', min: 0.05, max: 0.4, step: 0.01, default: 0.2, precision: 2 },
+      { key: 'b', label: 'b', min: 0.05, max: 0.4, step: 0.01, default: 0.2, precision: 2 },
+      { key: 'c', label: 'c', min: 3,    max: 12,  step: 0.1,  default: 5.7, precision: 1 }
+    ],
+    integrate: (n, params = {}) => {
       const dt = 0.035
-      const a = 0.2, b = 0.2, c = 5.7
+      const { a = 0.2, b = 0.2, c = 5.7 } = params
       const out = new Float32Array(n * 3)
       let x = 1, y = 1, z = 1
       for (let i = 0; i < n; i++) {
@@ -228,15 +262,23 @@ export const SURFACES = [
     pointCount: 2200,
     pointSize: 0.06,
     animated: true,
-    generate: (n) => {
-      const GOLDEN_ANGLE = (3 - Math.sqrt(5)) * PI // ≈ 2.39996 rad ≈ 137.5°
+    params: [
+      // The whole point of Vogel's model is that the golden angle (137.507°) is
+      // the *only* irrational angle that packs without overlap or rifts. Letting
+      // the user sweep this slider shows that immediately — try 137.4° vs 137.5°.
+      { key: 'angleDeg',   label: '°',  min: 90,  max: 180,  step: 0.1, default: 180 * ((3 - Math.sqrt(5))) , precision: 3 },
+      { key: 'pointCount', label: 'N',  min: 200, max: 4000, step: 100, default: 2200 }
+    ],
+    generate: (n, params = {}) => {
+      const angleRad = ((params.angleDeg ?? (180 * (3 - Math.sqrt(5)))) * Math.PI) / 180
+      const total = params.pointCount ?? n
       const c = 0.06
-      const out = new Float32Array(n * 3)
-      for (let i = 0; i < n; i++) {
+      const out = new Float32Array(total * 3)
+      for (let i = 0; i < total; i++) {
         const r = c * Math.sqrt(i + 1)
-        const theta = (i + 1) * GOLDEN_ANGLE
+        const theta = (i + 1) * angleRad
         out[i * 3] = r * cos(theta)
-        out[i * 3 + 1] = 0.06 * r * r  // subtle dome so the head looks 3D
+        out[i * 3 + 1] = 0.06 * r * r
         out[i * 3 + 2] = r * sin(theta)
       }
       return out
@@ -256,14 +298,27 @@ export const SURFACES = [
       'r(\\theta,\\phi)=1+0.45\\sin(l\\theta)\\cos(m\\phi)\\;,\\;\\; l,m \\in \\{2,3,4,5,6\\}',
     kind: 'morph',
     uvSegments: 130,
-    sampler: (u, v, time, target) => {
-      // Step (l, m) through integers; the two phases are decorrelated so
-      // the surface is constantly walking through new mode combinations.
-      const l = 2 + Math.floor(((sin(time * 0.32) * 0.5) + 0.5) * 4.999)
-      const m = 2 + Math.floor(((cos(time * 0.41) * 0.5) + 0.5) * 4.999)
-      const theta = u * PI            // colatitude [0, π]
-      const phi = v * 2 * PI          // longitude  [0, 2π]
-      const r = 1 + 0.45 * sin(l * theta) * cos(m * phi)
+    params: [
+      { key: 'l',         label: 'l',     min: 0,   max: 8,   step: 1,   default: 0 },
+      { key: 'm',         label: 'm',     min: 0,   max: 8,   step: 1,   default: 0 },
+      { key: 'amplitude', label: 'amp',   min: 0.1, max: 0.7, step: 0.05, default: 0.45, precision: 2 }
+    ],
+    // When l = 0 (default), animate by cycling integer modes; once the user
+    // moves the l slider, lock both (l, m) to their chosen integers so the
+    // surface freezes on a specific harmonic.
+    sampler: (u, v, time, target, params = {}) => {
+      const amplitude = params.amplitude ?? 0.45
+      let l, m
+      if ((params.l ?? 0) === 0 && (params.m ?? 0) === 0) {
+        l = 2 + Math.floor(((sin(time * 0.32) * 0.5) + 0.5) * 4.999)
+        m = 2 + Math.floor(((cos(time * 0.41) * 0.5) + 0.5) * 4.999)
+      } else {
+        l = params.l ?? 3
+        m = params.m ?? 3
+      }
+      const theta = u * PI
+      const phi = v * 2 * PI
+      const r = 1 + amplitude * sin(l * theta) * cos(m * phi)
       target.set(
         r * sin(theta) * cos(phi),
         r * cos(theta),

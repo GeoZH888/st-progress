@@ -3,10 +3,16 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { ParametricGeometry } from 'three/examples/jsm/geometries/ParametricGeometry.js'
+import { paletteById, backgroundById, DEFAULT_PALETTE, DEFAULT_BACKGROUND } from '../lib/themes'
 
-const COLOR_LOW = '#c9a85a'   // warm gold (matches the math-block accent on /math)
-const COLOR_HIGH = '#7a3b8c'  // deep violet for the top of the gradient
+// Default-only fallback used when a component is mounted without a palette prop.
+const FALLBACK_PAL = paletteById(DEFAULT_PALETTE)
 const AUTO_ROTATE_SPEED = 0.25
+
+function colorsOf(palette) {
+  const p = palette || FALLBACK_PAL
+  return { low: p.low, high: p.high }
+}
 
 /**
  * Recolor every vertex by its world Y so the surface reads like a heightmap.
@@ -105,23 +111,28 @@ function StaticSurface({ geometry, renderMode }) {
   )
 }
 
-function ParametricSurfaceMesh({ surface, renderMode }) {
+function ParametricSurfaceMesh({ surface, renderMode, palette, params }) {
+  const { low, high } = colorsOf(palette)
+  const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
-    const g = new ParametricGeometry(surface.sampler, surface.uvSegments, surface.uvSegments)
+    const sampler = (u, v, target) => surface.sampler(u, v, target, params)
+    const g = new ParametricGeometry(sampler, surface.uvSegments, surface.uvSegments)
     fitGeometry(g)
-    applyHeightGradient(g, COLOR_LOW, COLOR_HIGH)
+    applyHeightGradient(g, low, high)
     return g
-  }, [surface])
+  }, [surface, low, high, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
   return <StaticSurface geometry={geometry} renderMode={renderMode} />
 }
 
-function BuiltinSurfaceMesh({ surface, renderMode }) {
+function BuiltinSurfaceMesh({ surface, renderMode, palette, params }) {
+  const { low, high } = colorsOf(palette)
+  const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
-    const g = surface.build(THREE)
+    const g = surface.build(THREE, params)
     fitGeometry(g)
-    applyHeightGradient(g, COLOR_LOW, COLOR_HIGH)
+    applyHeightGradient(g, low, high)
     return g
-  }, [surface])
+  }, [surface, low, high, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
   return <StaticSurface geometry={geometry} renderMode={renderMode} />
 }
 
@@ -130,8 +141,13 @@ function BuiltinSurfaceMesh({ surface, renderMode }) {
  * the position + color attributes every frame in place — no GC pressure even
  * at 60fps with ~25k vertices.
  */
-function MorphingSurfaceMesh({ surface, renderMode }) {
+function MorphingSurfaceMesh({ surface, renderMode, palette, params }) {
   const groupRef = useRef()
+  const { low, high } = colorsOf(palette)
+  // Keep params in a ref so useFrame can read the latest without re-creating
+  // the closure (which would re-allocate buffers etc.)
+  const paramsRef = useRef(params)
+  useEffect(() => { paramsRef.current = params }, [params])
 
   const geometry = useMemo(() => {
     const N = surface.uvSegments
@@ -162,8 +178,8 @@ function MorphingSurfaceMesh({ surface, renderMode }) {
   useEffect(() => () => geometry.dispose(), [geometry])
 
   const tmp = useMemo(() => new THREE.Vector3(), [])
-  const colorA = useMemo(() => new THREE.Color(COLOR_LOW), [])
-  const colorB = useMemo(() => new THREE.Color(COLOR_HIGH), [])
+  const colorA = useMemo(() => new THREE.Color(low), [low])
+  const colorB = useMemo(() => new THREE.Color(high), [high])
   const colorTmp = useMemo(() => new THREE.Color(), [])
 
   useFrame((state, delta) => {
@@ -176,9 +192,10 @@ function MorphingSurfaceMesh({ surface, renderMode }) {
     let idx = 0
     let minY = Infinity
     let maxY = -Infinity
+    const p = paramsRef.current
     for (let i = 0; i <= N; i++) {
       for (let j = 0; j <= N; j++) {
-        surface.sampler(i / N, j / N, time, tmp)
+        surface.sampler(i / N, j / N, time, tmp, p)
         pos[idx++] = tmp.x
         pos[idx++] = tmp.y
         pos[idx++] = tmp.z
@@ -218,15 +235,17 @@ function MorphingSurfaceMesh({ surface, renderMode }) {
  * 3·n with sequential (x,y,z) triples; we color by progression along the path
  * (gold → violet) and rotate the whole thing slowly.
  */
-function AttractorMesh({ surface }) {
+function AttractorMesh({ surface, palette, params }) {
   const meshRef = useRef()
+  const { low, high } = colorsOf(palette)
+  const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
-    const flat = surface.integrate(surface.points || 6000)
+    const flat = surface.integrate(surface.points || 6000, params)
     const positions = flat instanceof Float32Array ? flat : new Float32Array(flat)
     const count = positions.length / 3
     const colors = new Float32Array(count * 3)
-    const cA = new THREE.Color(COLOR_LOW)
-    const cB = new THREE.Color(COLOR_HIGH)
+    const cA = new THREE.Color(low)
+    const cB = new THREE.Color(high)
     const cTmp = new THREE.Color()
     for (let i = 0; i < count; i++) {
       const t = i / (count - 1)
@@ -240,7 +259,7 @@ function AttractorMesh({ surface }) {
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3))
     fitGeometry(g)
     return g
-  }, [surface])
+  }, [surface, low, high, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => geometry.dispose(), [geometry])
 
@@ -261,15 +280,17 @@ function AttractorMesh({ surface }) {
  * triples. If `surface.animated` is truthy, a sinusoidal draw-range
  * oscillates 0..N..0 so the spiral visibly blooms.
  */
-function PointsMesh({ surface }) {
+function PointsMesh({ surface, palette, params }) {
   const meshRef = useRef()
+  const { low, high } = colorsOf(palette)
+  const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
-    const flat = surface.generate(surface.pointCount || 2000)
+    const flat = surface.generate(surface.pointCount || 2000, params)
     const positions = flat instanceof Float32Array ? flat : new Float32Array(flat)
     const count = positions.length / 3
     const colors = new Float32Array(count * 3)
-    const cA = new THREE.Color(COLOR_LOW)
-    const cB = new THREE.Color(COLOR_HIGH)
+    const cA = new THREE.Color(low)
+    const cB = new THREE.Color(high)
     const cTmp = new THREE.Color()
     for (let i = 0; i < count; i++) {
       const t = count > 1 ? i / (count - 1) : 0
@@ -284,7 +305,7 @@ function PointsMesh({ surface }) {
     fitGeometry(g)
     if (surface.animated) g.setDrawRange(0, 0)
     return g
-  }, [surface])
+  }, [surface, low, high, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => geometry.dispose(), [geometry])
 
@@ -313,12 +334,12 @@ function PointsMesh({ surface }) {
   )
 }
 
-function Surface({ surface, renderMode }) {
-  if (surface.kind === 'morph') return <MorphingSurfaceMesh surface={surface} renderMode={renderMode} />
-  if (surface.kind === 'builtin') return <BuiltinSurfaceMesh surface={surface} renderMode={renderMode} />
-  if (surface.kind === 'attractor') return <AttractorMesh surface={surface} />
-  if (surface.kind === 'points') return <PointsMesh surface={surface} />
-  return <ParametricSurfaceMesh surface={surface} renderMode={renderMode} />
+function Surface({ surface, renderMode, palette, params }) {
+  if (surface.kind === 'morph')     return <MorphingSurfaceMesh   surface={surface} renderMode={renderMode} palette={palette} params={params} />
+  if (surface.kind === 'builtin')   return <BuiltinSurfaceMesh    surface={surface} renderMode={renderMode} palette={palette} params={params} />
+  if (surface.kind === 'attractor') return <AttractorMesh         surface={surface}                          palette={palette} params={params} />
+  if (surface.kind === 'points')    return <PointsMesh            surface={surface}                          palette={palette} params={params} />
+  return <ParametricSurfaceMesh surface={surface} renderMode={renderMode} palette={palette} params={params} />
 }
 
 // Which surface kinds respect the render-mode picker (solid / wireframe / both / points)?
@@ -327,7 +348,19 @@ export function surfaceSupportsRenderMode(surface) {
   return surface.kind === 'morph' || surface.kind === 'builtin' || surface.kind === 'parametric' || !surface.kind
 }
 
-export default function SurfaceViewer({ surface, renderMode = 'solid' }) {
+export default function SurfaceViewer({
+  surface,
+  renderMode = 'solid',
+  paletteId = DEFAULT_PALETTE,
+  backgroundId = DEFAULT_BACKGROUND,
+  params = null
+}) {
+  const palette = paletteById(paletteId)
+  const bg = backgroundById(backgroundId)
+  // Lighter backgrounds (parchment) need a lower ambient so the surface still
+  // has definition; darker scenes can push ambient up a touch.
+  const isLight = bg.id === 'parchment'
+  const ambient = isLight ? 0.65 : 0.45
   return (
     <Canvas
       key={surface.id} // force a fresh canvas so geometries dispose cleanly
@@ -335,12 +368,12 @@ export default function SurfaceViewer({ surface, renderMode = 'solid' }) {
       dpr={[1, 2]}
       gl={{ antialias: true }}
     >
-      <color attach="background" args={['#1c1814']} />
-      <fog attach="fog" args={['#1c1814', 8, 18]} />
-      <ambientLight intensity={0.45} />
+      <color attach="background" args={[bg.color]} />
+      <fog attach="fog" args={[bg.color, 8, 18]} />
+      <ambientLight intensity={ambient} />
       <directionalLight position={[5, 6, 4]} intensity={1.1} />
-      <directionalLight position={[-5, -3, -5]} intensity={0.45} color="#7a3b8c" />
-      <Surface surface={surface} renderMode={renderMode} />
+      <directionalLight position={[-5, -3, -5]} intensity={0.45} color={bg.accent} />
+      <Surface surface={surface} renderMode={renderMode} palette={palette} params={params} />
       <OrbitControls enablePan={false} minDistance={2.6} maxDistance={11} />
     </Canvas>
   )
