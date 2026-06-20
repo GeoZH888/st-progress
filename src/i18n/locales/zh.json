@@ -236,7 +236,6 @@
       "heading": "RAG 文库",
       "summary": "{{docs}} 份 PDF · {{chunks}} 个分块",
       "refresh": "刷新",
-      "uploadHint": "添加新 PDF：将文件放入本地 ./pdfs/ 文件夹，并运行 `python scripts/ingest_pdfs.py`。浏览器上传暂不支持。",
       "title": "标题",
       "filename": "文件名",
       "pages": "页数",
@@ -246,7 +245,16 @@
       "hide": "收起",
       "page": "第",
       "noChunks": "该文档暂无分块。",
-      "confirmDelete": "删除 {{filename}} 及其全部分块？"
+      "confirmDelete": "删除 {{filename}} 及其全部分块？",
+      "upload": {
+        "title": "添加新 PDF",
+        "subtitle": "拖入或选择 PDF —— 我们会用 Claude 视觉逐页提取 Markdown（数学公式以 LaTeX 输出），再用 Voyage 进行分块与嵌入。命令行批量导入仍可并行使用。",
+        "choose": "选择 PDF",
+        "reading": "正在读取 PDF…",
+        "extracting": "正在提取第 {{done}} 页（共 {{total}} 页）…",
+        "embedding": "正在分块并生成嵌入…",
+        "doneMsg": "已导入 {{filename}}：共 {{chunks}} 个分块，来自 {{pages}} 页。"
+      }
     },
     "ai": {
       "label": "AI",

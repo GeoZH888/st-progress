@@ -455,7 +455,53 @@
   transform: none;
 }
 
-/* ---------- RAG admin ---------- */
+/* ---------- RAG admin: PDF uploader ---------- */
+.admin-uploader {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.admin-uploader-title {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  color: var(--admin-ink);
+}
+.admin-uploader-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.admin-upload-progress {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.admin-upload-label {
+  color: var(--admin-muted);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.admin-upload-bar {
+  width: 100%;
+  height: 8px;
+  background: #e8dfc6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.admin-upload-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c9a85a, #2f6fbe);
+  transition: width 0.3s ease;
+}
+.admin-upload-progress .admin-btn {
+  align-self: flex-start;
+}
+
+/* ---------- RAG admin: list ---------- */
 .admin-doc-table {
   width: 100%;
   border-collapse: collapse;

@@ -236,7 +236,6 @@
       "heading": "RAG library",
       "summary": "{{docs}} PDFs · {{chunks}} chunks",
       "refresh": "Refresh",
-      "uploadHint": "Adding a new PDF: drop it into ./pdfs/ locally and run `python scripts/ingest_pdfs.py`. Browser upload is out of scope.",
       "title": "Title",
       "filename": "Filename",
       "pages": "Pages",
@@ -246,7 +245,16 @@
       "hide": "Hide",
       "page": "p.",
       "noChunks": "No chunks for this document.",
-      "confirmDelete": "Delete {{filename}} and all of its chunks?"
+      "confirmDelete": "Delete {{filename}} and all of its chunks?",
+      "upload": {
+        "title": "Add a new PDF",
+        "subtitle": "Drop in a PDF — we extract its markdown page-by-page using Claude vision (math comes out as LaTeX), then chunk and embed via Voyage. The CLI ingest is still available for bulk runs.",
+        "choose": "Choose a PDF",
+        "reading": "Reading the PDF…",
+        "extracting": "Extracting page {{done}} of {{total}}…",
+        "embedding": "Chunking and embedding…",
+        "doneMsg": "Ingested {{filename}} — {{chunks}} chunks from {{pages}} pages."
+      }
     },
     "ai": {
       "label": "AI",

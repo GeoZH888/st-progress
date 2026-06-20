@@ -236,7 +236,6 @@
       "heading": "Libreria RAG",
       "summary": "{{docs}} PDF · {{chunks}} chunk",
       "refresh": "Aggiorna",
-      "uploadHint": "Per aggiungere un nuovo PDF: caricalo in ./pdfs/ in locale ed esegui `python scripts/ingest_pdfs.py`. L'upload da browser è fuori scope.",
       "title": "Titolo",
       "filename": "Nome file",
       "pages": "Pagine",
@@ -246,7 +245,16 @@
       "hide": "Nascondi",
       "page": "p.",
       "noChunks": "Nessun chunk per questo documento.",
-      "confirmDelete": "Eliminare {{filename}} e tutti i suoi chunk?"
+      "confirmDelete": "Eliminare {{filename}} e tutti i suoi chunk?",
+      "upload": {
+        "title": "Aggiungi un nuovo PDF",
+        "subtitle": "Trascina o seleziona un PDF — estraiamo il markdown pagina per pagina con Claude vision (la matematica esce in LaTeX), poi suddividiamo e creiamo gli embedding con Voyage. Lo script CLI rimane disponibile per importazioni di massa.",
+        "choose": "Scegli un PDF",
+        "reading": "Lettura del PDF…",
+        "extracting": "Estrazione pagina {{done}} di {{total}}…",
+        "embedding": "Suddivisione e creazione embedding…",
+        "doneMsg": "Importato {{filename}}: {{chunks}} chunk da {{pages}} pagine."
+      }
     },
     "ai": {
       "label": "AI",

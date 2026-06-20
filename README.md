@@ -58,7 +58,10 @@ Hidden at `/admin` — Supabase Auth (email + password) protects the route, and 
 - Milestones / Figures / Locations — full trilingual editors with the ✨AI button on each field to translate from one language into the other two
 - RAG library — list ingested PDFs, see chunk counts, view individual chunks, delete a doc (cascades to its chunks)
 
-Browser-side PDF upload is intentionally out of scope — Marker needs Python. To add a PDF, drop it into `./pdfs/` locally and run `python scripts/ingest_pdfs.py`.
+Two ways to ingest a PDF, both writing to the same `stp_math_chunks` table so search works identically:
+
+- **From the browser**, in the RAG admin tab. PDF.js renders each page to an image, Claude Sonnet 4.6 vision extracts Markdown (with LaTeX), then chunks are embedded via Voyage. Needs `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` to be set in **Netlify** env (not just `.env`).
+- **From the CLI**, for bulk runs or local-only PDFs. Drop the file into `./pdfs/` and run `python scripts/ingest_pdfs.py` (uses Marker locally — heavier, more accurate on dense math, no per-page API cost).
 
 ## Mascot art
 
