@@ -46,7 +46,9 @@ Hidden at `/admin` — Supabase Auth (email + password) protects the route, and 
 **One-time setup:**
 
 1. Paste `db/admin_schema.sql` into the Supabase SQL editor (after the other migrations). It creates `is_admin()` and RLS policies on every `stp_*` table.
-2. In the Supabase dashboard → Authentication → Users → **Add user**, set email = `superadmin@ci-world.com`, choose a strong password, and tick *Auto Confirm User*.
+2. Create the admin user. Either:
+   - **From the dashboard** — Authentication → Users → **Add user**, email = `superadmin@ci-world.com`, choose a strong password, tick *Auto Confirm User*; **or**
+   - **From the CLI** — make sure `SUPABASE_SERVICE_ROLE_KEY` is in `.env`, then run `python scripts/create_admin_user.py`. The script creates the user (or resets the password if it already exists) and auto-confirms the email so login works immediately. Edit the constants at the top of the file to change the email/password.
 3. If you change the admin email, edit the allow-list inside `is_admin()` in `db/admin_schema.sql` and re-run the migration.
 4. Add `ANTHROPIC_API_KEY` to `.env` and to Netlify env vars (Site settings → Environment variables) — powers Leonardo's translate/draft helpers.
 
