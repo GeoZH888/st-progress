@@ -1,6 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router-dom'
 import './LeonardoChat.css'
+
+// Per-route greetings so Leonardo opens with something relevant to where the
+// user is. Falls back to the default greeting (`leo.greet`) for any path
+// without a tailored entry.
+function greetingKeyForPath(pathname) {
+  if (pathname.startsWith('/math'))      return 'leo.greetMath'
+  if (pathname.startsWith('/gallery'))   return 'leo.greetGallery'
+  if (pathname.startsWith('/milestone')) return 'leo.greetMilestone'
+  return 'leo.greet'
+}
 
 // ============================================================
 // Tiny unique ID for message keys (no crypto required).
@@ -139,6 +150,8 @@ function useSpeechRecognition(lang) {
 // ============================================================
 export default function LeonardoChat({ open, onClose }) {
   const { t, i18n } = useTranslation()
+  const { pathname } = useLocation()
+  const greetingKey = useMemo(() => greetingKeyForPath(pathname), [pathname])
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [staged, setStaged] = useState(null) // { dataUrl, base64, mediaType }
@@ -156,12 +169,13 @@ export default function LeonardoChat({ open, onClose }) {
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }, [messages.length, loading])
 
-  // Greet the first time the panel opens. The greeting is local-only; it isn't
-  // sent to Claude (would just waste tokens).
+  // Greet the first time the panel opens — pick a route-aware variant so the
+  // first line feels relevant to where the user is. The greeting is local-only;
+  // it isn't sent to Claude (would just waste tokens).
   useEffect(() => {
     if (open && messages.length === 0) {
       setMessages([
-        { id: 'greet', role: 'assistant', textPreview: t('leo.greet'), local: true }
+        { id: 'greet', role: 'assistant', textPreview: t(greetingKey, t('leo.greet')), local: true }
       ])
     }
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps

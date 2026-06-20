@@ -139,21 +139,15 @@
     "loadError": "Impossibile caricare i dati. Controlla la configurazione di Supabase."
   },
   "mascot": {
-    "name": "Leonardo",
-    "tips": {
-      "home": "Salve! Sono Leonardo, la tua guida tra le tappe del progresso umano. Scegli come esplorare — io partirei dalla Cronologia!",
-      "timeline": "Passa tra Scienza & Tecnologia ed Economia & Industria, filtra per campo o salta direttamente a un'epoca.",
-      "fields": "Scegli un campo per vederne le svolte in ordine — ognuna apre la sua storia completa.",
-      "map": "I segnaposto sono colorati per campo. Tocca \"Vicino a me\" per scoprire le invenzioni intorno a te.",
-      "milestone": "Ecco la storia completa dietro questa tappa.",
-      "math": "Chiedimi qualsiasi cosa sui PDF importati — troverò il passaggio più rilevante.",
-      "gallery": "Scegli una superficie a sinistra — trascina il viewport per ruotarla, e guarda il morph Catenoide ↔ Elicoide per la vera magia."
-    }
+    "name": "Leonardo"
   },
   "leo": {
     "openChat": "Chatta con {{name}}",
     "subtitle": "La tua guida AI",
-    "greet": "Salve! Sono Leonardo. Chiedimi qualsiasi cosa sulle tappe, sulla matematica, sulla scienza o sulla storia — oppure inviami una foto e chiedimi cosa vedi. Puoi anche toccare il microfono e parlarmi.",
+    "greet": "Salve! 🎨 Piacere di conoscerti — sono Leonardo. Dimmi cosa ti incuriosisce: una tappa, una formula, un volto sul muro. Scatta la foto di qualcosa di strano, oppure dimmelo a voce — ti ascolto in entrambi i casi.",
+    "greetMath": "Salve! 🎨 Adoro quando qualcuno vuole guardare la matematica da vicino. Scrivi una formula, fotografa una pagina di un libro, oppure raccontami cosa stai cercando di capire — risolviamola insieme.",
+    "greetGallery": "Belle, vero? 🎨 Ognuna di queste superfici nasconde un vecchio segreto della geometria. Sceglierne una e chiedimi qualsiasi cosa — perché si piega così, chi l'ha scritta per primo, dove si vede in natura.",
+    "greetMilestone": "Davanti a un grande momento della storia, eh? 🎨 Chiedimi qualsiasi cosa — cosa l'ha preceduto, chi ha portato avanti l'idea, perché ancora oggi conta.",
     "placeholder": "Chiedi a Leonardo…",
     "send": "Invia",
     "camera": "Apri fotocamera",

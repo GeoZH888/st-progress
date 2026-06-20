@@ -19,7 +19,7 @@ set search_path = public
 as $$
   select coalesce(
     (auth.jwt() ->> 'email') = any(array[
-      'admin@ci-world.com'
+      'superadmin@ci-world.com'
     ]),
     false
   );
