@@ -12,7 +12,10 @@
 @media (max-width: 720px) {
   .gallery-layout {
     grid-template-columns: 1fr;
+    gap: 0.9rem;
   }
+  .page-title { font-size: 1.4rem; }
+  .page-subtitle { font-size: 0.95rem; }
 }
 
 /* ---------- picker (left) ---------- */
@@ -40,6 +43,8 @@
   background: transparent;
   border-radius: 8px;
   font: inherit;
+  font-size: 0.9rem;
+  min-height: 38px;
   color: var(--ink, #2b2419);
   cursor: pointer;
   display: flex;
@@ -79,6 +84,38 @@
   line-height: 1.4;
 }
 
+/* Mobile: turn the sidebar into a horizontal chip strip pinned above the
+   viewport, so you scroll surfaces with your thumb instead of pinching past
+   a tall column. */
+@media (max-width: 720px) {
+  .gallery-picker {
+    padding: 0.4rem;
+    background: #fffefa;
+    border: 1px solid var(--border, #e2dccc);
+    border-radius: 12px;
+  }
+  .gallery-picker ul {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.35rem;
+    padding-bottom: 0.2rem;
+    scroll-snap-type: x mandatory;
+  }
+  .gallery-picker li {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+  .gallery-pick {
+    white-space: nowrap;
+    padding: 0.5rem 0.85rem;
+    min-height: 40px;
+  }
+  .gallery-pick.on { transform: none; } /* the strip already shifts on scroll */
+  .gallery-hint { display: none; }
+}
+
 .gallery-viewport-wrap {
   display: flex;
   flex-direction: column;
@@ -100,7 +137,8 @@
   background: #fffefa;
   border: 1px solid var(--border, #e2dccc);
   border-radius: 999px;
-  padding: 0.25rem 0.7rem;
+  padding: 0.35rem 0.85rem;
+  min-height: 32px;
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
@@ -148,12 +186,22 @@
 }
 .palette-swatch {
   width: 56px;
-  height: 22px;
+  height: 24px;
   border-radius: 12px;
 }
 .bg-swatch {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
+}
+@media (max-width: 720px) {
+  .gallery-theme-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: 0.1rem;
+  }
+  .palette-swatch { width: 48px; height: 26px; flex: 0 0 auto; }
+  .bg-swatch      { width: 28px; height: 28px; flex: 0 0 auto; }
 }
 
 /* ---------- per-surface parameter sliders ---------- */
@@ -188,6 +236,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.6rem 0.9rem;
+}
+@media (max-width: 720px) {
+  .gallery-params-grid { grid-template-columns: 1fr; }
+  .gallery-param input[type='range'] { height: 32px; } /* easier to grab on touch */
 }
 .gallery-param {
   display: grid;
@@ -224,6 +276,15 @@
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
   animation: viewport-fade-in 0.5s ease-out;
+  touch-action: none; /* let OrbitControls own touch gestures */
+}
+
+@media (max-width: 720px) {
+  .gallery-viewport {
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+    max-height: 70vh;
+  }
 }
 
 .gallery-viewport canvas {
@@ -285,6 +346,119 @@
   background: linear-gradient(180deg, #f3e6c5, #ecd699);
   transform: translateY(-1px);
 }
+
+/* ---------- Custom surface form ---------- */
+.gallery-add-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  background: transparent;
+  border: 1px dashed var(--border, #d6d2c4);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--muted, #6e6557);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.gallery-add-btn:hover {
+  background: #faf6ec;
+  color: var(--ink, #2b2419);
+  border-color: #c9a85a;
+}
+
+.gallery-custom-form {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem 1rem;
+  background: #fffefa;
+  border: 1px solid var(--border, #e2dccc);
+  border-radius: 12px;
+  margin-top: 0.5rem;
+}
+.gallery-custom-form h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ink, #2b2419);
+}
+.gallery-custom-form label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--muted, #6e6557);
+}
+.gallery-custom-form input,
+.gallery-custom-form textarea {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border, #d6d2c4);
+  border-radius: 6px;
+  font: inherit;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 0.85rem;
+  background: #fff;
+  color: var(--ink, #2b2419);
+}
+.gallery-custom-form .gallery-custom-name {
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+.gallery-custom-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  margin-top: 0.3rem;
+  flex-wrap: wrap;
+}
+.gallery-custom-actions button {
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid var(--border, #d6d2c4);
+  background: #fff;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.gallery-custom-actions .gallery-custom-save {
+  background: #2f6fbe;
+  color: #fff;
+  border-color: #2f6fbe;
+}
+.gallery-custom-actions .gallery-custom-save:hover {
+  background: #1e4a82;
+}
+.gallery-custom-error {
+  color: #9b2818;
+  background: #fbe9e7;
+  border: 1px solid #f3c3bd;
+  border-radius: 6px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
+}
+.gallery-custom-hint {
+  font-size: 0.78rem;
+  color: var(--muted, #6e6557);
+  line-height: 1.45;
+}
+.gallery-custom-hint code {
+  background: #faf6ec;
+  padding: 0 0.25rem;
+  border-radius: 3px;
+}
+
+.gallery-pick-star {
+  margin-left: auto;
+  color: #c9a85a;
+  font-size: 0.85rem;
+}
+.gallery-pick-delete {
+  background: transparent;
+  border: none;
+  color: var(--danger, #b53620);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 0.25rem;
+}
+.gallery-pick-delete:hover { opacity: 1; }
 
 .gallery-equation {
   overflow-x: auto;

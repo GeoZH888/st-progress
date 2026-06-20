@@ -147,7 +147,25 @@
     },
     "askLeo": "问问莱昂纳多",
     "askLeoTooltip": "围绕这个曲面与莱昂纳多对话",
-    "askLeoPrompt": "给我讲讲「{{name}}」——它的历史、谁最早研究它，以及它在自然界或数学的其他角落如何出现。"
+    "askLeoPrompt": "给我讲讲「{{name}}」——它的历史、谁最早研究它，以及它在自然界或数学的其他角落如何出现。",
+    "custom": {
+      "add": "添加你自己的曲面",
+      "close": "收起",
+      "title": "新建自定义曲面",
+      "hint": "用 JavaScript 表达式分别写出 x(u, v)、y(u, v)、z(u, v)，可用 sin / cos / sqrt / exp / pow / PI 等。u、v 取值范围 [0, 2π]。可以套用下方模板，或让莱昂纳多帮你拟一组公式。",
+      "name": "名称",
+      "namePlaceholder": "例如：螺旋贝壳",
+      "equation": "LaTeX 公式（可选）",
+      "save": "保存曲面",
+      "delete": "删除",
+      "confirmDelete": "确认删除该自定义曲面？",
+      "badge": "自定义（本机）",
+      "tplHelicoid": "螺旋面",
+      "tplRose": "玫瑰曲面",
+      "tplShell": "贝壳",
+      "askLeo": "让莱昂纳多给个公式",
+      "errNoName": "请先给曲面起个名字。"
+    }
   },
   "common": {
     "loading": "加载中…",

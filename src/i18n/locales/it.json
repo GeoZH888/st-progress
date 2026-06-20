@@ -147,7 +147,25 @@
     },
     "askLeo": "Chiedi a Leonardo",
     "askLeoTooltip": "Apri la chat con una domanda su questa superficie",
-    "askLeoPrompt": "Parlami di {{name}} — la sua storia, chi l'ha studiata per primo e dove appare in natura o in altri rami della matematica."
+    "askLeoPrompt": "Parlami di {{name}} — la sua storia, chi l'ha studiata per primo e dove appare in natura o in altri rami della matematica.",
+    "custom": {
+      "add": "Aggiungi una tua superficie",
+      "close": "Chiudi",
+      "title": "Nuova superficie personalizzata",
+      "hint": "Scrivi tre espressioni JavaScript per x(u, v), y(u, v), z(u, v) usando sin / cos / sqrt / exp / pow / PI ecc. u e v sono in [0, 2π]. Usa un template o chiedi a Leonardo di inventare una formula.",
+      "name": "Nome",
+      "namePlaceholder": "es. Conchiglia a spirale",
+      "equation": "Equazione LaTeX (opzionale)",
+      "save": "Salva superficie",
+      "delete": "Elimina",
+      "confirmDelete": "Eliminare questa superficie personalizzata?",
+      "badge": "Personalizzata (tua)",
+      "tplHelicoid": "Elicoide",
+      "tplRose": "Rosa",
+      "tplShell": "Conchiglia",
+      "askLeo": "Chiedi a Leonardo una formula",
+      "errNoName": "Dai prima un nome alla superficie."
+    }
   },
   "common": {
     "loading": "Caricamento…",

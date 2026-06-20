@@ -4,6 +4,10 @@ import katex from 'katex'
 import 'katex/dist/katex.min.css'
 import { SURFACES, DEFAULT_SURFACE_ID, getSurface, localizedName } from '../lib/surfaces'
 import {
+  loadCustomSurfaces, addCustomSurface, removeCustomSurface,
+  customToSurface, compileExpr
+} from '../lib/customSurfaces'
+import {
   PALETTES, BACKGROUNDS,
   DEFAULT_PALETTE, DEFAULT_BACKGROUND,
   paletteById, backgroundById, localizedThemeName, paletteGradientCss
@@ -43,6 +47,98 @@ function askLeonardo(prompt) {
   window.dispatchEvent(new CustomEvent('leonardo-open', { detail: { prompt } }))
 }
 
+// --- Custom surface form ---
+const CUSTOM_TEMPLATES = {
+  helicoid:    { name: 'Helicoid (custom)', xExpr: 'v*cos(u)', yExpr: 'v*sin(u)', zExpr: '0.3*u', equation: 'x=v\\cos u,\\;y=v\\sin u,\\;z=0.3u' },
+  rose:        { name: 'Rose surface',      xExpr: 'cos(3*u)*cos(v)', yExpr: 'cos(3*u)*sin(v)', zExpr: 'sin(3*u)', equation: 'r=\\cos(3u)' },
+  shell:       { name: 'Spiral shell',      xExpr: '(1+0.5*cos(v))*cos(u)*exp(0.1*u)', yExpr: '(1+0.5*cos(v))*sin(u)*exp(0.1*u)', zExpr: '0.5*sin(v)*exp(0.1*u)', equation: 'r=(1+\\tfrac12\\cos v)e^{u/10}' }
+}
+
+function CustomSurfaceForm({ onSave, onCancel, t }) {
+  const [form, setForm] = useState({
+    name: '', xExpr: 'sin(u)*cos(v)', yExpr: 'sin(u)*sin(v)', zExpr: 'cos(u)', equation: ''
+  })
+  const [error, setError] = useState(null)
+
+  function patch(k, v) { setForm((f) => ({ ...f, [k]: v })) }
+  function loadTemplate(key) {
+    const tpl = CUSTOM_TEMPLATES[key]
+    if (tpl) { setForm((f) => ({ ...f, ...tpl })); setError(null) }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    setError(null)
+    const name = form.name.trim()
+    if (!name) { setError(t('gallery.custom.errNoName')); return }
+    try {
+      // Sanity-compile each expression — surfaces the error in the form
+      // rather than after save when rendering would silently fail.
+      compileExpr(form.xExpr)
+      compileExpr(form.yExpr)
+      compileExpr(form.zExpr)
+    } catch (e) {
+      setError(e.message); return
+    }
+    onSave({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name,
+      xExpr: form.xExpr.trim(),
+      yExpr: form.yExpr.trim(),
+      zExpr: form.zExpr.trim(),
+      equation: form.equation.trim(),
+      createdAt: new Date().toISOString()
+    })
+  }
+
+  function askForFormula() {
+    const prompt = `Give me a parametric surface for a beautiful shape (e.g. helicoid, trefoil knot, spiral seashell, conic spiral, etc.).
+Return ONLY a JSON object with these keys, where x/y/z are JavaScript expressions in u and v (u, v ∈ [0, 2π]) using only sin, cos, sinh, cosh, sqrt, exp, log, pow, abs, PI:
+{
+  "name": "<a short name>",
+  "xExpr": "<expression>",
+  "yExpr": "<expression>",
+  "zExpr": "<expression>",
+  "equation": "<LaTeX equation>"
+}`
+    window.dispatchEvent(new CustomEvent('leonardo-open', { detail: { prompt } }))
+  }
+
+  return (
+    <form className="gallery-custom-form" onSubmit={handleSubmit}>
+      <h3>{t('gallery.custom.title')}</h3>
+      <p className="gallery-custom-hint">{t('gallery.custom.hint')}</p>
+      <div className="gallery-custom-actions" style={{ justifyContent: 'flex-start' }}>
+        <button type="button" onClick={() => loadTemplate('helicoid')}>{t('gallery.custom.tplHelicoid')}</button>
+        <button type="button" onClick={() => loadTemplate('rose')}>{t('gallery.custom.tplRose')}</button>
+        <button type="button" onClick={() => loadTemplate('shell')}>{t('gallery.custom.tplShell')}</button>
+        <button type="button" onClick={askForFormula}>✨ {t('gallery.custom.askLeo')}</button>
+      </div>
+      <label>
+        {t('gallery.custom.name')}
+        <input className="gallery-custom-name" value={form.name} onChange={(e) => patch('name', e.target.value)} placeholder={t('gallery.custom.namePlaceholder')} />
+      </label>
+      <label>x(u, v)
+        <input value={form.xExpr} onChange={(e) => patch('xExpr', e.target.value)} />
+      </label>
+      <label>y(u, v)
+        <input value={form.yExpr} onChange={(e) => patch('yExpr', e.target.value)} />
+      </label>
+      <label>z(u, v)
+        <input value={form.zExpr} onChange={(e) => patch('zExpr', e.target.value)} />
+      </label>
+      <label>{t('gallery.custom.equation')}
+        <input value={form.equation} onChange={(e) => patch('equation', e.target.value)} placeholder="x = \sin u \cos v, …" />
+      </label>
+      {error && <div className="gallery-custom-error">{error}</div>}
+      <div className="gallery-custom-actions">
+        <button type="button" onClick={onCancel}>{t('admin.cancel')}</button>
+        <button type="submit" className="gallery-custom-save">{t('gallery.custom.save')}</button>
+      </div>
+    </form>
+  )
+}
+
 function getLS(key, fallback) {
   try {
     const v = localStorage.getItem(key)
@@ -70,11 +166,41 @@ export default function Gallery() {
   const [motionId, setMotionId] = useState(() => getLS(LS_KEYS.motion, 'gentle'))
   const motionValue = (MOTION_LEVELS.find((m) => m.id === motionId) || MOTION_LEVELS[1]).value
 
-  const surface = getSurface(activeId)
+  // ---- Custom user-added surfaces (localStorage) ----
+  const [customs, setCustoms] = useState(() => loadCustomSurfaces())
+  const [addOpen, setAddOpen] = useState(false)
+
+  // Compile each custom record into a surface object; skip the broken ones
+  // (they stay in storage but don't show up in the picker — user can delete).
+  const compiledCustoms = useMemo(() => {
+    const out = []
+    for (const c of customs) {
+      try { out.push(customToSurface(c)) } catch { /* surface broken, skip */ }
+    }
+    return out
+  }, [customs])
+
+  const allSurfaces = useMemo(() => [...SURFACES, ...compiledCustoms], [compiledCustoms])
+
+  function findActive() {
+    return allSurfaces.find((s) => s.id === activeId) || allSurfaces[0]
+  }
   const lang = i18n.language
   const surfaceName = localizedName(surface, lang)
   const palette = paletteById(paletteId)
   const bg = backgroundById(backgroundId)
+
+  function handleSaveCustom(entry) {
+    setCustoms(addCustomSurface(entry))
+    setAddOpen(false)
+    setActiveId(`custom-${entry.id}`)
+  }
+  function handleDeleteCustom(customId, e) {
+    e?.stopPropagation()
+    if (!window.confirm(t('gallery.custom.confirmDelete'))) return
+    setCustoms(removeCustomSurface(customId))
+    if (activeId === `custom-${customId}`) setActiveId(DEFAULT_SURFACE_ID)
+  }
 
   // Per-surface params: keyed by surface id so each surface remembers its tweaks.
   const [paramsBySurface, setParamsBySurface] = useState({})
@@ -110,7 +236,7 @@ export default function Gallery() {
       <div className="gallery-layout">
         <aside className="gallery-picker" aria-label={t('gallery.pickerLabel')}>
           <ul>
-            {SURFACES.map((s) => (
+            {allSurfaces.map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
@@ -118,11 +244,33 @@ export default function Gallery() {
                   onClick={() => setActiveId(s.id)}
                 >
                   <span className="gallery-pick-dot" aria-hidden="true" />
-                  {localizedName(s, lang)}
+                  <span>{localizedName(s, lang)}</span>
+                  {s.isCustom && (
+                    <>
+                      <span className="gallery-pick-star" title={t('gallery.custom.badge')}>★</span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        className="gallery-pick-delete"
+                        aria-label={t('gallery.custom.delete')}
+                        onClick={(e) => handleDeleteCustom(s.customId, e)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleDeleteCustom(s.customId, e) }}
+                      >
+                        ×
+                      </span>
+                    </>
+                  )}
                 </button>
               </li>
             ))}
           </ul>
+          <button
+            type="button"
+            className="gallery-add-btn"
+            onClick={() => setAddOpen((v) => !v)}
+          >
+            {addOpen ? `× ${t('gallery.custom.close')}` : `+ ${t('gallery.custom.add')}`}
+          </button>
           <p className="gallery-hint">{t('gallery.hint')}</p>
         </aside>
 
@@ -201,6 +349,8 @@ export default function Gallery() {
               />
             </Suspense>
           </div>
+
+          {addOpen && <CustomSurfaceForm onSave={handleSaveCustom} onCancel={() => setAddOpen(false)} t={t} />}
 
           {/* --- per-surface parameter sliders --- */}
           {surface.params && (
