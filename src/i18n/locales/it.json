@@ -124,9 +124,19 @@
   },
   "gallery": {
     "title": "Galleria Matematica 3D",
-    "subtitle": "Sei classici della geometria differenziale — superfici minime, nodi, varietà non orientabili. Ruotali, guardali trasformarsi. Costruito con Three.js e KaTeX.",
+    "subtitle": "Classici della geometria differenziale — superfici minime, nodi, attrattori caotici, fillotassi. Ruota, cambia stile, guardali trasformarsi. Costruito con Three.js e KaTeX.",
     "pickerLabel": "Scegli una superficie",
-    "hint": "Trascina per ruotare · scorri per zoomare"
+    "hint": "Trascina per ruotare · scorri per zoomare",
+    "style": "Stile",
+    "styles": {
+      "solid": "Solido",
+      "wireframe": "Filo di ferro",
+      "both": "Solido + filo",
+      "points": "Punti"
+    },
+    "askLeo": "Chiedi a Leonardo",
+    "askLeoTooltip": "Apri la chat con una domanda su questa superficie",
+    "askLeoPrompt": "Parlami di {{name}} — la sua storia, chi l'ha studiata per primo e dove appare in natura o in altri rami della matematica."
   },
   "common": {
     "loading": "Caricamento…",
@@ -247,12 +257,14 @@
       "noChunks": "Nessun chunk per questo documento.",
       "confirmDelete": "Eliminare {{filename}} e tutti i suoi chunk?",
       "upload": {
-        "title": "Aggiungi un nuovo PDF",
-        "subtitle": "Trascina o seleziona un PDF — estraiamo il markdown pagina per pagina con Claude vision (la matematica esce in LaTeX), poi suddividiamo e creiamo gli embedding con Voyage. Lo script CLI rimane disponibile per importazioni di massa.",
-        "choose": "Scegli un PDF",
+        "title": "Aggiungi nuovi PDF",
+        "subtitle": "Trascina o seleziona uno o più PDF — estraiamo il markdown pagina per pagina con Claude vision (la matematica esce in LaTeX), poi suddividiamo e creiamo gli embedding con Voyage. Lo script CLI rimane disponibile per importazioni di massa.",
+        "choose": "Scegli i PDF",
         "reading": "Lettura del PDF…",
         "extracting": "Estrazione pagina {{done}} di {{total}}…",
         "embedding": "Suddivisione e creazione embedding…",
+        "file": "File {{current}}/{{total}}: {{name}}",
+        "resultOk": "{{chunks}} chunk da {{pages}} pagine",
         "doneMsg": "Importato {{filename}}: {{chunks}} chunk da {{pages}} pagine."
       }
     },

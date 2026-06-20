@@ -16,96 +16,109 @@ function fmtDate(s) {
 //      embeds via Voyage, and upserts into Supabase
 // One page per Claude call so we stay inside Netlify's 10–26s timeout.
 // ============================================================
+async function ingestOnePdf(file, { onPhase, cancelRef }) {
+  // Lazy-load pdfjs only when actually ingesting.
+  const pdfjs = await import('pdfjs-dist')
+  const workerMod = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+  pdfjs.GlobalWorkerOptions.workerSrc = workerMod.default
+
+  onPhase({ phase: 'reading' })
+  const arrayBuffer = await file.arrayBuffer()
+  const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
+  const numPages = pdf.numPages
+
+  onPhase({ phase: 'extracting', done: 0, total: numPages })
+  const markdownPages = []
+  for (let i = 1; i <= numPages; i++) {
+    if (cancelRef.current) throw new Error('cancelled')
+
+    const page = await pdf.getPage(i)
+    const viewport = page.getViewport({ scale: 2.0 })
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.ceil(viewport.width)
+    canvas.height = Math.ceil(viewport.height)
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    canvas.width = 0
+    canvas.height = 0
+
+    const res = await fetch('/api/process-pdf-page', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: dataUrl, pageNum: i, totalPages: numPages })
+    })
+    const body = await res.json().catch(() => null)
+    if (!res.ok) throw new Error(body?.error || `Page ${i}: HTTP ${res.status}`)
+    markdownPages.push((body?.markdown || '').trim())
+    onPhase({ phase: 'extracting', done: i, total: numPages })
+  }
+
+  onPhase({ phase: 'embedding' })
+  const fullMarkdown = markdownPages.filter(Boolean).join('\n\n')
+  if (!fullMarkdown) throw new Error('No text extracted from any page.')
+
+  const title = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim()
+  const res = await fetch('/api/embed-and-store', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      filename: file.name,
+      title,
+      pageCount: numPages,
+      markdown: fullMarkdown
+    })
+  })
+  const body = await res.json().catch(() => null)
+  if (!res.ok) throw new Error(body?.error || `Embed: HTTP ${res.status}`)
+
+  return { filename: file.name, pageCount: numPages, chunkCount: body?.chunkCount ?? 0 }
+}
+
 function PdfUploader({ onComplete }) {
   const { t } = useTranslation()
-  const [state, setState] = useState('idle') // idle | reading | extracting | embedding | done | error
-  const [progress, setProgress] = useState({ done: 0, total: 0 })
-  const [info, setInfo] = useState(null) // { chunkCount } on success
-  const [error, setError] = useState(null)
+  const [state, setState] = useState('idle') // idle | busy | done | error
+  const [queue, setQueue] = useState({ total: 0, currentIndex: 0, currentName: '' })
+  const [phase, setPhase] = useState(null) // { phase: 'reading'|'extracting'|'embedding', done?, total? }
+  const [results, setResults] = useState([]) // [{ filename, ok, chunkCount?, pageCount?, error? }]
   const fileRef = useRef(null)
   const cancelRef = useRef(false)
 
-  async function handleFile(file) {
-    if (!file) return
+  async function handleFiles(filesList) {
+    const files = Array.from(filesList || []).filter((f) => f.name.toLowerCase().endsWith('.pdf'))
+    if (files.length === 0) return
+
     cancelRef.current = false
-    setError(null)
-    setInfo(null)
-    setState('reading')
-    setProgress({ done: 0, total: 0 })
+    setResults([])
+    setState('busy')
+    setQueue({ total: files.length, currentIndex: 0, currentName: '' })
 
-    try {
-      // Dynamic import keeps pdf.js out of the initial bundle.
-      const pdfjs = await import('pdfjs-dist')
-      const workerMod = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
-      pdfjs.GlobalWorkerOptions.workerSrc = workerMod.default
-
-      const arrayBuffer = await file.arrayBuffer()
-      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
-      const numPages = pdf.numPages
-
-      setState('extracting')
-      setProgress({ done: 0, total: numPages })
-
-      const markdownPages = []
-      for (let i = 1; i <= numPages; i++) {
-        if (cancelRef.current) throw new Error('cancelled')
-
-        const page = await pdf.getPage(i)
-        const viewport = page.getViewport({ scale: 2.0 }) // 2× DPI for OCR
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.ceil(viewport.width)
-        canvas.height = Math.ceil(viewport.height)
-        const ctx = canvas.getContext('2d')
-        await page.render({ canvasContext: ctx, viewport }).promise
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
-        // Free the canvas memory early.
-        canvas.width = 0
-        canvas.height = 0
-
-        const res = await fetch('/api/process-pdf-page', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: dataUrl, pageNum: i, totalPages: numPages })
-        })
-        const body = await res.json().catch(() => null)
-        if (!res.ok) throw new Error(body?.error || `Page ${i}: HTTP ${res.status}`)
-        markdownPages.push((body?.markdown || '').trim())
-        setProgress({ done: i, total: numPages })
+    const localResults = []
+    for (let i = 0; i < files.length; i++) {
+      if (cancelRef.current) break
+      const file = files[i]
+      setQueue({ total: files.length, currentIndex: i + 1, currentName: file.name })
+      setPhase({ phase: 'reading' })
+      try {
+        const out = await ingestOnePdf(file, { onPhase: setPhase, cancelRef })
+        localResults.push({ ...out, ok: true })
+      } catch (e) {
+        if (e.message === 'cancelled') break
+        localResults.push({ filename: file.name, ok: false, error: e.message || String(e) })
       }
+      setResults([...localResults])
+    }
 
-      setState('embedding')
-      const fullMarkdown = markdownPages.filter(Boolean).join('\n\n')
-      if (!fullMarkdown) throw new Error('No text extracted from any page.')
-
-      const title = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim()
-      const res = await fetch('/api/embed-and-store', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: file.name,
-          title,
-          pageCount: numPages,
-          markdown: fullMarkdown
-        })
-      })
-      const body = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(body?.error || `Embed: HTTP ${res.status}`)
-
-      setInfo({ chunkCount: body?.chunkCount ?? 0, pageCount: numPages, filename: file.name })
-      setState('done')
-      onComplete?.(body)
-    } catch (e) {
-      if (e.message === 'cancelled') {
-        setState('idle')
-      } else {
-        setError(e.message || String(e))
-        setState('error')
-      }
+    setPhase(null)
+    if (cancelRef.current) {
+      setState('idle')
+    } else {
+      setState(localResults.some((r) => !r.ok) ? 'error' : 'done')
+      onComplete?.(localResults)
     }
   }
 
-  const busy = state === 'reading' || state === 'extracting' || state === 'embedding'
-  const pct = progress.total > 0 ? (progress.done / progress.total) * 100 : (busy ? 5 : 0)
+  const busy = state === 'busy'
+  const pct = phase?.total > 0 ? (phase.done / phase.total) * 100 : (busy ? 5 : 0)
 
   return (
     <div className="admin-uploader">
@@ -116,7 +129,8 @@ function PdfUploader({ onComplete }) {
         ref={fileRef}
         type="file"
         accept="application/pdf,.pdf"
-        onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; handleFile(f) }}
+        multiple
+        onChange={(e) => { const fs = e.target.files; e.target.value = ''; handleFiles(fs) }}
         hidden
       />
 
@@ -129,21 +143,30 @@ function PdfUploader({ onComplete }) {
           >
             {t('admin.rag.upload.choose')}
           </button>
-          {state === 'done' && info && (
-            <span className="admin-success">
-              ✓ {t('admin.rag.upload.doneMsg', { filename: info.filename, chunks: info.chunkCount, pages: info.pageCount })}
-            </span>
+          {results.length > 0 && (
+            <ul className="admin-upload-results">
+              {results.map((r, i) => (
+                <li key={i} className={r.ok ? 'admin-upload-result-ok' : 'admin-upload-result-fail'}>
+                  {r.ok ? '✓' : '✗'} <code>{r.filename}</code>
+                  {r.ok
+                    ? ` — ${t('admin.rag.upload.resultOk', { chunks: r.chunkCount, pages: r.pageCount })}`
+                    : ` — ${r.error}`}
+                </li>
+              ))}
+            </ul>
           )}
-          {state === 'error' && <div className="admin-error">{error}</div>}
         </div>
       )}
 
       {busy && (
         <div className="admin-upload-progress">
           <div className="admin-upload-label">
-            {state === 'reading' && t('admin.rag.upload.reading')}
-            {state === 'extracting' && t('admin.rag.upload.extracting', { done: progress.done, total: progress.total })}
-            {state === 'embedding' && t('admin.rag.upload.embedding')}
+            {t('admin.rag.upload.file', { current: queue.currentIndex, total: queue.total, name: queue.currentName })}
+          </div>
+          <div className="admin-upload-sublabel">
+            {phase?.phase === 'reading' && t('admin.rag.upload.reading')}
+            {phase?.phase === 'extracting' && t('admin.rag.upload.extracting', { done: phase.done, total: phase.total })}
+            {phase?.phase === 'embedding' && t('admin.rag.upload.embedding')}
           </div>
           <div className="admin-upload-bar">
             <div className="admin-upload-fill" style={{ width: `${pct}%` }} />

@@ -148,7 +148,7 @@ function useSpeechRecognition(lang) {
 // ============================================================
 // Main chat panel
 // ============================================================
-export default function LeonardoChat({ open, onClose }) {
+export default function LeonardoChat({ open, onClose, initialPrompt }) {
   const { t, i18n } = useTranslation()
   const { pathname } = useLocation()
   const greetingKey = useMemo(() => greetingKeyForPath(pathname), [pathname])
@@ -161,6 +161,7 @@ export default function LeonardoChat({ open, onClose }) {
 
   const fileInputRef = useRef(null)
   const messagesRef = useRef(null)
+  const autoSentRef = useRef(false)
   const speech = useSpeechRecognition(i18n.language)
 
   // Auto-scroll the message list to the bottom on new messages / typing-loader.
@@ -179,6 +180,18 @@ export default function LeonardoChat({ open, onClose }) {
       ])
     }
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // If the panel was opened with an initialPrompt (e.g. via the /gallery Ask
+  // Leonardo button), auto-send it once the greeting has rendered. Guarded by
+  // autoSentRef so a re-render can't double-send.
+  useEffect(() => {
+    if (!open || !initialPrompt || autoSentRef.current) return
+    autoSentRef.current = true
+    setInput(initialPrompt)
+    // Defer one tick so the greeting paints first and the input state propagates.
+    const id = setTimeout(() => handleSend(), 250)
+    return () => clearTimeout(id)
+  }, [open, initialPrompt]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function stageImage(dataUrl) {
     const [meta, b64] = dataUrl.split(',')

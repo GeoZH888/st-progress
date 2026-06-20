@@ -124,9 +124,19 @@
   },
   "gallery": {
     "title": "3D 数学几何馆",
-    "subtitle": "来自微分几何的六个经典曲面 —— 极小曲面、纽结、不可定向流形。旋转它们，欣赏形变。基于 Three.js 与 KaTeX。",
+    "subtitle": "来自微分几何的经典曲面 —— 极小曲面、纽结、奇异吸引子、叶序螺旋。旋转、切换样式、观察形变。基于 Three.js 与 KaTeX。",
     "pickerLabel": "选择一个曲面",
-    "hint": "拖动旋转 · 滚轮缩放"
+    "hint": "拖动旋转 · 滚轮缩放",
+    "style": "样式",
+    "styles": {
+      "solid": "实体",
+      "wireframe": "线框",
+      "both": "实体+线框",
+      "points": "顶点"
+    },
+    "askLeo": "问问莱昂纳多",
+    "askLeoTooltip": "围绕这个曲面与莱昂纳多对话",
+    "askLeoPrompt": "给我讲讲「{{name}}」——它的历史、谁最早研究它，以及它在自然界或数学的其他角落如何出现。"
   },
   "common": {
     "loading": "加载中…",
@@ -248,11 +258,13 @@
       "confirmDelete": "删除 {{filename}} 及其全部分块？",
       "upload": {
         "title": "添加新 PDF",
-        "subtitle": "拖入或选择 PDF —— 我们会用 Claude 视觉逐页提取 Markdown（数学公式以 LaTeX 输出），再用 Voyage 进行分块与嵌入。命令行批量导入仍可并行使用。",
+        "subtitle": "可一次拖入或选择多个 PDF —— 我们会用 Claude 视觉逐页提取 Markdown（数学公式以 LaTeX 输出），再用 Voyage 进行分块与嵌入。命令行批量导入仍可并行使用。",
         "choose": "选择 PDF",
         "reading": "正在读取 PDF…",
         "extracting": "正在提取第 {{done}} 页（共 {{total}} 页）…",
         "embedding": "正在分块并生成嵌入…",
+        "file": "文件 {{current}}/{{total}}：{{name}}",
+        "resultOk": "共 {{chunks}} 个分块，来自 {{pages}} 页",
         "doneMsg": "已导入 {{filename}}：共 {{chunks}} 个分块，来自 {{pages}} 页。"
       }
     },

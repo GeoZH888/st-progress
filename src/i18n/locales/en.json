@@ -124,9 +124,19 @@
   },
   "gallery": {
     "title": "3D Math Gallery",
-    "subtitle": "Six classics from differential geometry — minimal surfaces, knots, non-orientable manifolds. Rotate them, watch them morph. Built with Three.js and KaTeX.",
+    "subtitle": "Classics from differential geometry — minimal surfaces, knots, chaotic flows, phyllotaxis. Rotate, restyle, watch them morph. Built with Three.js and KaTeX.",
     "pickerLabel": "Pick a surface",
-    "hint": "Drag to rotate · scroll to zoom"
+    "hint": "Drag to rotate · scroll to zoom",
+    "style": "Style",
+    "styles": {
+      "solid": "Solid",
+      "wireframe": "Wireframe",
+      "both": "Solid + wire",
+      "points": "Points"
+    },
+    "askLeo": "Ask Leonardo",
+    "askLeoTooltip": "Open the chat with a question about this surface",
+    "askLeoPrompt": "Tell me about {{name}} — its history, who first studied it, and where it appears in nature or other parts of mathematics."
   },
   "common": {
     "loading": "Loading…",
@@ -247,12 +257,14 @@
       "noChunks": "No chunks for this document.",
       "confirmDelete": "Delete {{filename}} and all of its chunks?",
       "upload": {
-        "title": "Add a new PDF",
-        "subtitle": "Drop in a PDF — we extract its markdown page-by-page using Claude vision (math comes out as LaTeX), then chunk and embed via Voyage. The CLI ingest is still available for bulk runs.",
-        "choose": "Choose a PDF",
+        "title": "Add new PDFs",
+        "subtitle": "Drop in one or several PDFs — we extract markdown page-by-page using Claude vision (math comes out as LaTeX), then chunk and embed via Voyage. The CLI ingest is still available for bulk runs.",
+        "choose": "Choose PDFs",
         "reading": "Reading the PDF…",
         "extracting": "Extracting page {{done}} of {{total}}…",
         "embedding": "Chunking and embedding…",
+        "file": "File {{current}}/{{total}}: {{name}}",
+        "resultOk": "{{chunks}} chunks from {{pages}} pages",
         "doneMsg": "Ingested {{filename}} — {{chunks}} chunks from {{pages}} pages."
       }
     },

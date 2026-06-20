@@ -10,16 +10,34 @@ import './Gallery.css'
 // shows immediately while the 3D viewer streams in.
 const SurfaceViewer = lazy(() => import('../components/SurfaceViewer'))
 
+const RENDER_MODES = ['solid', 'wireframe', 'both', 'points']
+
+// Which surface kinds respect the render-mode picker. (Lines + point clouds
+// are already in a fixed form, so we hide the picker for them.)
+function supportsRenderMode(surface) {
+  return surface.kind === 'morph' || surface.kind === 'builtin'
+    || surface.kind === 'parametric' || !surface.kind
+}
+
 function Equation({ latex }) {
   const html = katex.renderToString(latex, { displayMode: true, throwOnError: false })
   return <div className="gallery-equation" dangerouslySetInnerHTML={{ __html: html }} />
 }
 
+// Open the Leonardo chat panel pre-filled with a question about the current
+// surface. Mascot listens for this CustomEvent so we don't need prop-drilling
+// from App -> Gallery.
+function askLeonardo(prompt) {
+  window.dispatchEvent(new CustomEvent('leonardo-open', { detail: { prompt } }))
+}
+
 export default function Gallery() {
   const { t, i18n } = useTranslation()
   const [activeId, setActiveId] = useState(DEFAULT_SURFACE_ID)
+  const [renderMode, setRenderMode] = useState('solid')
   const surface = getSurface(activeId)
   const lang = i18n.language
+  const surfaceName = localizedName(surface, lang)
 
   return (
     <div className="page gallery-page">
@@ -45,15 +63,42 @@ export default function Gallery() {
           <p className="gallery-hint">{t('gallery.hint')}</p>
         </aside>
 
-        <div className="gallery-viewport" key={surface.id}>
-          <Suspense fallback={<Loading />}>
-            <SurfaceViewer surface={surface} />
-          </Suspense>
+        <div className="gallery-viewport-wrap">
+          {supportsRenderMode(surface) && (
+            <div className="gallery-style-bar" role="group" aria-label={t('gallery.style')}>
+              <span className="gallery-style-label">{t('gallery.style')}:</span>
+              {RENDER_MODES.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`gallery-style-chip${renderMode === mode ? ' on' : ''}`}
+                  onClick={() => setRenderMode(mode)}
+                >
+                  {t(`gallery.styles.${mode}`)}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="gallery-viewport" key={surface.id + ':' + renderMode}>
+            <Suspense fallback={<Loading />}>
+              <SurfaceViewer surface={surface} renderMode={renderMode} />
+            </Suspense>
+          </div>
         </div>
       </div>
 
       <section className="gallery-detail">
-        <h2 className="gallery-name">{localizedName(surface, lang)}</h2>
+        <div className="gallery-detail-head">
+          <h2 className="gallery-name">{surfaceName}</h2>
+          <button
+            type="button"
+            className="gallery-ask-btn"
+            onClick={() => askLeonardo(t('gallery.askLeoPrompt', { name: surfaceName }))}
+            title={t('gallery.askLeoTooltip')}
+          >
+            ✨ {t('gallery.askLeo')}
+          </button>
+        </div>
         <Equation latex={surface.equation} />
       </section>
     </div>

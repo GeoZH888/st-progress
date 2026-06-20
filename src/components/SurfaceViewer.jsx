@@ -51,42 +51,78 @@ function fitGeometry(geometry, targetRadius = 2.0) {
   geometry.computeVertexNormals()
 }
 
-function StaticSurface({ geometry }) {
-  const meshRef = useRef()
-  useFrame((_, delta) => {
-    if (meshRef.current) meshRef.current.rotation.y += delta * AUTO_ROTATE_SPEED
-  })
-  useEffect(() => () => geometry.dispose(), [geometry])
+/**
+ * Render the same geometry as solid mesh, wireframe overlay, both, or points.
+ * Lets us share one geometry between layers (cheap; one draw call per layer).
+ */
+function SurfaceLayers({ geometry, renderMode = 'solid' }) {
+  const showSolid = renderMode === 'solid' || renderMode === 'both'
+  const showWire = renderMode === 'wireframe' || renderMode === 'both'
+  const showPoints = renderMode === 'points'
   return (
-    <mesh ref={meshRef} geometry={geometry}>
-      <meshStandardMaterial
-        side={THREE.DoubleSide}
-        metalness={0.28}
-        roughness={0.5}
-        vertexColors
-      />
-    </mesh>
+    <>
+      {showSolid && (
+        <mesh geometry={geometry}>
+          <meshStandardMaterial
+            side={THREE.DoubleSide}
+            metalness={0.28}
+            roughness={0.5}
+            vertexColors
+            transparent={renderMode === 'both'}
+            opacity={renderMode === 'both' ? 0.78 : 1}
+          />
+        </mesh>
+      )}
+      {showWire && (
+        <mesh geometry={geometry} scale={renderMode === 'both' ? 1.003 : 1}>
+          <meshBasicMaterial
+            color={renderMode === 'both' ? '#f0d68a' : '#c9a85a'}
+            wireframe
+            transparent
+            opacity={renderMode === 'both' ? 0.45 : 0.9}
+          />
+        </mesh>
+      )}
+      {showPoints && (
+        <points geometry={geometry}>
+          <pointsMaterial color="#c9a85a" size={0.05} sizeAttenuation />
+        </points>
+      )}
+    </>
   )
 }
 
-function ParametricSurfaceMesh({ surface }) {
+function StaticSurface({ geometry, renderMode }) {
+  const groupRef = useRef()
+  useFrame((_, delta) => {
+    if (groupRef.current) groupRef.current.rotation.y += delta * AUTO_ROTATE_SPEED
+  })
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return (
+    <group ref={groupRef}>
+      <SurfaceLayers geometry={geometry} renderMode={renderMode} />
+    </group>
+  )
+}
+
+function ParametricSurfaceMesh({ surface, renderMode }) {
   const geometry = useMemo(() => {
     const g = new ParametricGeometry(surface.sampler, surface.uvSegments, surface.uvSegments)
     fitGeometry(g)
     applyHeightGradient(g, COLOR_LOW, COLOR_HIGH)
     return g
   }, [surface])
-  return <StaticSurface geometry={geometry} />
+  return <StaticSurface geometry={geometry} renderMode={renderMode} />
 }
 
-function BuiltinSurfaceMesh({ surface }) {
+function BuiltinSurfaceMesh({ surface, renderMode }) {
   const geometry = useMemo(() => {
     const g = surface.build(THREE)
     fitGeometry(g)
     applyHeightGradient(g, COLOR_LOW, COLOR_HIGH)
     return g
   }, [surface])
-  return <StaticSurface geometry={geometry} />
+  return <StaticSurface geometry={geometry} renderMode={renderMode} />
 }
 
 /**
@@ -94,8 +130,8 @@ function BuiltinSurfaceMesh({ surface }) {
  * the position + color attributes every frame in place — no GC pressure even
  * at 60fps with ~25k vertices.
  */
-function MorphingSurfaceMesh({ surface }) {
-  const meshRef = useRef()
+function MorphingSurfaceMesh({ surface, renderMode }) {
+  const groupRef = useRef()
 
   const geometry = useMemo(() => {
     const N = surface.uvSegments
@@ -131,11 +167,8 @@ function MorphingSurfaceMesh({ surface }) {
   const colorTmp = useMemo(() => new THREE.Color(), [])
 
   useFrame((state, delta) => {
-    if (!meshRef.current) return
+    if (!groupRef.current) return
     const N = surface.uvSegments
-    // Pass raw elapsed time; each surface decides how to derive its own
-    // morph parameter from it (catenoid-helicoid cycles 0..π/2, the modal
-    // sphere uses it to step integer (l, m) modes, etc.).
     const time = state.clock.elapsedTime
 
     const pos = geometry.attributes.position.array
@@ -165,24 +198,17 @@ function MorphingSurfaceMesh({ surface }) {
     geometry.attributes.position.needsUpdate = true
     geometry.attributes.color.needsUpdate = true
     geometry.computeVertexNormals()
-    // Re-center + scale once positions are filled (cheap; bounding sphere only).
     geometry.computeBoundingSphere()
     const r = geometry.boundingSphere?.radius || 1
     const s = 2 / r
-    meshRef.current.scale.setScalar(s)
-
-    meshRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * 0.7
+    groupRef.current.scale.setScalar(s)
+    groupRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * 0.7
   })
 
   return (
-    <mesh ref={meshRef} geometry={geometry}>
-      <meshStandardMaterial
-        side={THREE.DoubleSide}
-        metalness={0.28}
-        roughness={0.55}
-        vertexColors
-      />
-    </mesh>
+    <group ref={groupRef}>
+      <SurfaceLayers geometry={geometry} renderMode={renderMode} />
+    </group>
   )
 }
 
@@ -287,15 +313,21 @@ function PointsMesh({ surface }) {
   )
 }
 
-function Surface({ surface }) {
-  if (surface.kind === 'morph') return <MorphingSurfaceMesh surface={surface} />
-  if (surface.kind === 'builtin') return <BuiltinSurfaceMesh surface={surface} />
+function Surface({ surface, renderMode }) {
+  if (surface.kind === 'morph') return <MorphingSurfaceMesh surface={surface} renderMode={renderMode} />
+  if (surface.kind === 'builtin') return <BuiltinSurfaceMesh surface={surface} renderMode={renderMode} />
   if (surface.kind === 'attractor') return <AttractorMesh surface={surface} />
   if (surface.kind === 'points') return <PointsMesh surface={surface} />
-  return <ParametricSurfaceMesh surface={surface} />
+  return <ParametricSurfaceMesh surface={surface} renderMode={renderMode} />
 }
 
-export default function SurfaceViewer({ surface }) {
+// Which surface kinds respect the render-mode picker (solid / wireframe / both / points)?
+// Lines and point clouds don't — they're already in a fixed visual form.
+export function surfaceSupportsRenderMode(surface) {
+  return surface.kind === 'morph' || surface.kind === 'builtin' || surface.kind === 'parametric' || !surface.kind
+}
+
+export default function SurfaceViewer({ surface, renderMode = 'solid' }) {
   return (
     <Canvas
       key={surface.id} // force a fresh canvas so geometries dispose cleanly
@@ -308,7 +340,7 @@ export default function SurfaceViewer({ surface }) {
       <ambientLight intensity={0.45} />
       <directionalLight position={[5, 6, 4]} intensity={1.1} />
       <directionalLight position={[-5, -3, -5]} intensity={0.45} color="#7a3b8c" />
-      <Surface surface={surface} />
+      <Surface surface={surface} renderMode={renderMode} />
       <OrbitControls enablePan={false} minDistance={2.6} maxDistance={11} />
     </Canvas>
   )

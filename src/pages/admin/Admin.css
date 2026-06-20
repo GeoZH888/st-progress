@@ -500,6 +500,25 @@
 .admin-upload-progress .admin-btn {
   align-self: flex-start;
 }
+.admin-upload-sublabel {
+  color: var(--admin-muted);
+  font-size: 0.82rem;
+}
+.admin-upload-results {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0;
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.88rem;
+}
+.admin-upload-result-ok   { color: var(--admin-success); }
+.admin-upload-result-fail { color: var(--admin-danger); }
+.admin-upload-results code {
+  background: #f6efe0;
+  padding: 0 0.25rem;
+  border-radius: 3px;
+}
 
 /* ---------- RAG admin: list ---------- */
 .admin-doc-table {

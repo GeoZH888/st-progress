@@ -1,27 +1,41 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './Mascot.css'
 
 // Lazy: the chat panel pulls its own CSS and is only mounted once the user
-// clicks Leonardo. Saves ~5 KB from the initial bundle.
+// clicks Leonardo (or another component dispatches `leonardo-open`).
 const LeonardoChat = lazy(() => import('./LeonardoChat'))
 
 /*
  * Mascot / AI-assistant: Leonardo
  * --------------------------------
- * One Renaissance polymath as the guide across all three UI languages.
- * Clicking the avatar opens the LeonardoChat side panel (text + camera + file
- * + voice). The avatar art lives at public/mascots/leonardo.png and is
- * rendered free of any container circle so it reads as a standalone figure.
- *
- * `tipKey` is still accepted for backwards compatibility but is no longer
- * used to render a passive bubble — the chat greeting plays that role now.
+ * Clicking the avatar opens the LeonardoChat side panel. Other components
+ * (e.g. the /gallery Ask Leonardo button) can also open the panel with a
+ * pre-filled question by dispatching:
+ *   window.dispatchEvent(new CustomEvent('leonardo-open', { detail: { prompt } }))
  */
 
 export default function Mascot() {
   const { t } = useTranslation()
   const [chatOpen, setChatOpen] = useState(false)
+  const [initialPrompt, setInitialPrompt] = useState(null)
   const name = t('mascot.name')
+
+  // Listen for external "open the chat" requests.
+  useEffect(() => {
+    const handler = (e) => {
+      const prompt = e?.detail?.prompt
+      if (prompt) setInitialPrompt(prompt)
+      setChatOpen(true)
+    }
+    window.addEventListener('leonardo-open', handler)
+    return () => window.removeEventListener('leonardo-open', handler)
+  }, [])
+
+  function handleClose() {
+    setChatOpen(false)
+    setInitialPrompt(null)
+  }
 
   return (
     <>
@@ -30,14 +44,14 @@ export default function Mascot() {
           className="mascot-avatar"
           title={name}
           aria-label={t('leo.openChat', { name })}
-          onClick={() => setChatOpen(true)}
+          onClick={() => { setInitialPrompt(null); setChatOpen(true) }}
         >
           <img src="/mascots/leonardo.png" alt={name} className="mascot-figure" />
         </button>
       </div>
       {chatOpen && (
         <Suspense fallback={null}>
-          <LeonardoChat open={chatOpen} onClose={() => setChatOpen(false)} />
+          <LeonardoChat open={chatOpen} onClose={handleClose} initialPrompt={initialPrompt} />
         </Suspense>
       )}
     </>
