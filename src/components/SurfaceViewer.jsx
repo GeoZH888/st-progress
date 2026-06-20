@@ -133,8 +133,10 @@ function MorphingSurfaceMesh({ surface }) {
   useFrame((state, delta) => {
     if (!meshRef.current) return
     const N = surface.uvSegments
-    // Smooth cycle 0 -> pi/2 -> 0; cosine gives gentle eases at both ends.
-    const t = ((Math.cos(state.clock.elapsedTime * 0.35) * -0.5) + 0.5) * (Math.PI / 2)
+    // Pass raw elapsed time; each surface decides how to derive its own
+    // morph parameter from it (catenoid-helicoid cycles 0..π/2, the modal
+    // sphere uses it to step integer (l, m) modes, etc.).
+    const time = state.clock.elapsedTime
 
     const pos = geometry.attributes.position.array
     const col = geometry.attributes.color.array
@@ -143,7 +145,7 @@ function MorphingSurfaceMesh({ surface }) {
     let maxY = -Infinity
     for (let i = 0; i <= N; i++) {
       for (let j = 0; j <= N; j++) {
-        surface.sampler(i / N, j / N, t, tmp)
+        surface.sampler(i / N, j / N, time, tmp)
         pos[idx++] = tmp.x
         pos[idx++] = tmp.y
         pos[idx++] = tmp.z
@@ -184,9 +186,53 @@ function MorphingSurfaceMesh({ surface }) {
   )
 }
 
+/**
+ * Strange attractors / parametric curves rendered as a single continuous Line.
+ * `surface.integrate(n)` returns a Float32Array (or array of numbers) of length
+ * 3·n with sequential (x,y,z) triples; we color by progression along the path
+ * (gold → violet) and rotate the whole thing slowly.
+ */
+function AttractorMesh({ surface }) {
+  const meshRef = useRef()
+  const geometry = useMemo(() => {
+    const flat = surface.integrate(surface.points || 6000)
+    const positions = flat instanceof Float32Array ? flat : new Float32Array(flat)
+    const count = positions.length / 3
+    const colors = new Float32Array(count * 3)
+    const cA = new THREE.Color(COLOR_LOW)
+    const cB = new THREE.Color(COLOR_HIGH)
+    const cTmp = new THREE.Color()
+    for (let i = 0; i < count; i++) {
+      const t = i / (count - 1)
+      cTmp.copy(cA).lerp(cB, t)
+      colors[i * 3] = cTmp.r
+      colors[i * 3 + 1] = cTmp.g
+      colors[i * 3 + 2] = cTmp.b
+    }
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+    fitGeometry(g)
+    return g
+  }, [surface])
+
+  useEffect(() => () => geometry.dispose(), [geometry])
+
+  useFrame((_, delta) => {
+    if (meshRef.current) meshRef.current.rotation.y += delta * AUTO_ROTATE_SPEED
+  })
+
+  return (
+    <line ref={meshRef} geometry={geometry}>
+      <lineBasicMaterial vertexColors transparent opacity={0.95} />
+    </line>
+  )
+}
+
 function Surface({ surface }) {
   if (surface.kind === 'morph') return <MorphingSurfaceMesh surface={surface} />
   if (surface.kind === 'builtin') return <BuiltinSurfaceMesh surface={surface} />
+  if (surface.kind === 'attractor') return <AttractorMesh surface={surface} />
   return <ParametricSurfaceMesh surface={surface} />
 }
 
