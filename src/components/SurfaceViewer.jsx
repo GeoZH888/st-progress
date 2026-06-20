@@ -229,10 +229,69 @@ function AttractorMesh({ surface }) {
   )
 }
 
+/**
+ * Particle clouds — Fibonacci/Vogel patterns, lattices, point sets. The
+ * surface provides `generate(n)` returning a Float32Array of n·3 (x,y,z)
+ * triples. If `surface.animated` is truthy, a sinusoidal draw-range
+ * oscillates 0..N..0 so the spiral visibly blooms.
+ */
+function PointsMesh({ surface }) {
+  const meshRef = useRef()
+  const geometry = useMemo(() => {
+    const flat = surface.generate(surface.pointCount || 2000)
+    const positions = flat instanceof Float32Array ? flat : new Float32Array(flat)
+    const count = positions.length / 3
+    const colors = new Float32Array(count * 3)
+    const cA = new THREE.Color(COLOR_LOW)
+    const cB = new THREE.Color(COLOR_HIGH)
+    const cTmp = new THREE.Color()
+    for (let i = 0; i < count; i++) {
+      const t = count > 1 ? i / (count - 1) : 0
+      cTmp.copy(cA).lerp(cB, t)
+      colors[i * 3] = cTmp.r
+      colors[i * 3 + 1] = cTmp.g
+      colors[i * 3 + 2] = cTmp.b
+    }
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+    fitGeometry(g)
+    if (surface.animated) g.setDrawRange(0, 0)
+    return g
+  }, [surface])
+
+  useEffect(() => () => geometry.dispose(), [geometry])
+
+  useFrame((state, delta) => {
+    if (!meshRef.current) return
+    meshRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * 0.6
+    if (surface.animated) {
+      const total = geometry.attributes.position.count
+      // 0 → 1 → 0 over ~14 seconds; cosine gives smooth eases at both ends.
+      const t = (Math.cos(state.clock.elapsedTime * 0.45) * -0.5) + 0.5
+      const visible = Math.max(1, Math.floor(t * total))
+      geometry.setDrawRange(0, visible)
+    }
+  })
+
+  return (
+    <points ref={meshRef} geometry={geometry}>
+      <pointsMaterial
+        size={surface.pointSize || 0.06}
+        vertexColors
+        sizeAttenuation
+        transparent
+        opacity={0.95}
+      />
+    </points>
+  )
+}
+
 function Surface({ surface }) {
   if (surface.kind === 'morph') return <MorphingSurfaceMesh surface={surface} />
   if (surface.kind === 'builtin') return <BuiltinSurfaceMesh surface={surface} />
   if (surface.kind === 'attractor') return <AttractorMesh surface={surface} />
+  if (surface.kind === 'points') return <PointsMesh surface={surface} />
   return <ParametricSurfaceMesh surface={surface} />
 }
 

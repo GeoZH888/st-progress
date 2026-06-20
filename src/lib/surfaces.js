@@ -211,6 +211,39 @@ export const SURFACES = [
   },
 
   // ----------------------------------------------------------------------
+  // Vogel's sunflower — the canonical phyllotaxis spiral. For the nth seed,
+  // rotate by n × golden angle (≈137.5°) and step outward by √n. The
+  // irrationality of the golden ratio packs the seeds without overlap and
+  // without preferred direction — which is why real sunflowers use it.
+  // We add a gentle dome (z = 0.06·r²) so the spiral reads as a 3D head,
+  // not a flat disc.
+  {
+    id: 'vogel',
+    name_en: "Vogel's sunflower (golden angle)",
+    name_it: 'Girasole di Vogel (angolo aureo)',
+    name_zh: '沃格尔螺旋（黄金角）',
+    equation:
+      '\\theta_n = n\\,\\phi,\\quad r_n = c\\sqrt{n},\\quad \\phi = (3-\\sqrt{5})\\pi \\approx 137.507°',
+    kind: 'points',
+    pointCount: 2200,
+    pointSize: 0.06,
+    animated: true,
+    generate: (n) => {
+      const GOLDEN_ANGLE = (3 - Math.sqrt(5)) * PI // ≈ 2.39996 rad ≈ 137.5°
+      const c = 0.06
+      const out = new Float32Array(n * 3)
+      for (let i = 0; i < n; i++) {
+        const r = c * Math.sqrt(i + 1)
+        const theta = (i + 1) * GOLDEN_ANGLE
+        out[i * 3] = r * cos(theta)
+        out[i * 3 + 1] = 0.06 * r * r  // subtle dome so the head looks 3D
+        out[i * 3 + 2] = r * sin(theta)
+      }
+      return out
+    }
+  },
+
+  // ----------------------------------------------------------------------
   // Modal sphere — radius pulses by sin(l·θ)cos(m·φ); integer (l, m) modes
   // cycle slowly so the surface walks through different harmonics over
   // time. Visually close to the lower-order spherical harmonics.
