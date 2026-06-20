@@ -149,5 +149,99 @@
       "math": "问我任何关于你已导入 PDF 的内容——我会找到最相关的段落。",
       "gallery": "在左侧选一个曲面——拖动视口旋转，悬链面 ↔ 螺旋面 的形变最值得看。"
     }
+  },
+  "admin": {
+    "shellTitle": "管理后台",
+    "backToSite": "返回站点",
+    "signOut": "退出登录",
+    "search": "搜索…",
+    "addNew": "新增",
+    "save": "保存",
+    "saving": "保存中…",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirmDelete": "确认删除该行？此操作不可撤销。",
+    "allCategories": "全部分类",
+    "auto": "（自动）",
+    "login": {
+      "title": "管理员登录",
+      "subtitle": "登录后可编辑里程碑、人物、地点和 RAG 文库。",
+      "email": "邮箱",
+      "password": "密码",
+      "signIn": "登录",
+      "signingIn": "登录中…"
+    },
+    "nav": {
+      "dashboard": "概览",
+      "milestones": "里程碑",
+      "figures": "人物",
+      "locations": "地点",
+      "rag": "RAG 文库"
+    },
+    "dashboard": {
+      "title": "概览",
+      "subtitle": "当前各表条目数 —— 点击卡片可进入管理。",
+      "milestones": "里程碑",
+      "figures": "人物",
+      "locations": "地点",
+      "pdfs": "已导入 PDF",
+      "chunks": "已嵌入分块"
+    },
+    "milestones": {
+      "heading": "里程碑",
+      "count_one": "共 {{count}} 条里程碑",
+      "count_other": "共 {{count}} 条里程碑",
+      "category": "分类",
+      "field": "领域",
+      "year": "年份（负数为公元前）",
+      "era": "时代",
+      "figure": "关键人物",
+      "location": "地点",
+      "title": "标题",
+      "desc": "描述",
+      "imageUrl": "图片 URL"
+    },
+    "figures": {
+      "heading": "人物",
+      "count_one": "共 {{count}} 位人物",
+      "count_other": "共 {{count}} 位人物",
+      "name": "姓名",
+      "bio": "简介",
+      "birth": "出生年份",
+      "death": "卒年",
+      "nationality": "国籍",
+      "portrait": "肖像 URL"
+    },
+    "locations": {
+      "heading": "地点",
+      "count_one": "共 {{count}} 个地点",
+      "count_other": "共 {{count}} 个地点",
+      "name": "名称",
+      "lat": "纬度",
+      "lng": "经度",
+      "city": "城市",
+      "country": "国家"
+    },
+    "rag": {
+      "heading": "RAG 文库",
+      "summary": "{{docs}} 份 PDF · {{chunks}} 个分块",
+      "refresh": "刷新",
+      "uploadHint": "添加新 PDF：将文件放入本地 ./pdfs/ 文件夹，并运行 `python scripts/ingest_pdfs.py`。浏览器上传暂不支持。",
+      "title": "标题",
+      "filename": "文件名",
+      "pages": "页数",
+      "chunks": "分块数",
+      "created": "导入时间",
+      "view": "查看分块",
+      "hide": "收起",
+      "page": "第",
+      "noChunks": "该文档暂无分块。",
+      "confirmDelete": "删除 {{filename}} 及其全部分块？"
+    },
+    "ai": {
+      "label": "AI",
+      "translateOthers": "将此内容翻译到另外两种语言",
+      "needsSource": "请先填写源语言内容"
+    }
   }
 }

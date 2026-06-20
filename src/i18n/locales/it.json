@@ -149,5 +149,99 @@
       "math": "Chiedimi qualsiasi cosa sui PDF importati — troverò il passaggio più rilevante.",
       "gallery": "Scegli una superficie a sinistra — trascina il viewport per ruotarla, e guarda il morph Catenoide ↔ Elicoide per la vera magia."
     }
+  },
+  "admin": {
+    "shellTitle": "Admin",
+    "backToSite": "Torna al sito",
+    "signOut": "Esci",
+    "search": "Cerca…",
+    "addNew": "Aggiungi",
+    "save": "Salva",
+    "saving": "Salvataggio…",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "confirmDelete": "Eliminare questa riga? L'azione è irreversibile.",
+    "allCategories": "Tutte le categorie",
+    "auto": "(auto)",
+    "login": {
+      "title": "Accesso amministratore",
+      "subtitle": "Accedi per modificare tappe, figure, luoghi e la libreria RAG.",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Accedi",
+      "signingIn": "Accesso in corso…"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "milestones": "Tappe",
+      "figures": "Figure",
+      "locations": "Luoghi",
+      "rag": "Libreria RAG"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Conteggi attuali — clicca una card per gestire la tabella.",
+      "milestones": "Tappe",
+      "figures": "Figure",
+      "locations": "Luoghi",
+      "pdfs": "PDF importati",
+      "chunks": "Chunk (incorporati)"
+    },
+    "milestones": {
+      "heading": "Tappe",
+      "count_one": "{{count}} tappa in totale",
+      "count_other": "{{count}} tappe in totale",
+      "category": "Categoria",
+      "field": "Campo",
+      "year": "Anno (negativo = a.C.)",
+      "era": "Epoca",
+      "figure": "Protagonista",
+      "location": "Luogo",
+      "title": "Titolo",
+      "desc": "Descrizione",
+      "imageUrl": "URL immagine"
+    },
+    "figures": {
+      "heading": "Figure",
+      "count_one": "{{count}} figura in totale",
+      "count_other": "{{count}} figure in totale",
+      "name": "Nome",
+      "bio": "Biografia",
+      "birth": "Anno di nascita",
+      "death": "Anno di morte",
+      "nationality": "Nazionalità",
+      "portrait": "URL ritratto"
+    },
+    "locations": {
+      "heading": "Luoghi",
+      "count_one": "{{count}} luogo in totale",
+      "count_other": "{{count}} luoghi in totale",
+      "name": "Nome",
+      "lat": "Latitudine",
+      "lng": "Longitudine",
+      "city": "Città",
+      "country": "Paese"
+    },
+    "rag": {
+      "heading": "Libreria RAG",
+      "summary": "{{docs}} PDF · {{chunks}} chunk",
+      "refresh": "Aggiorna",
+      "uploadHint": "Per aggiungere un nuovo PDF: caricalo in ./pdfs/ in locale ed esegui `python scripts/ingest_pdfs.py`. L'upload da browser è fuori scope.",
+      "title": "Titolo",
+      "filename": "Nome file",
+      "pages": "Pagine",
+      "chunks": "Chunk",
+      "created": "Importato",
+      "view": "Mostra chunk",
+      "hide": "Nascondi",
+      "page": "p.",
+      "noChunks": "Nessun chunk per questo documento.",
+      "confirmDelete": "Eliminare {{filename}} e tutti i suoi chunk?"
+    },
+    "ai": {
+      "label": "AI",
+      "translateOthers": "Traduci nelle altre due lingue",
+      "needsSource": "Compila prima la lingua di origine"
+    }
   }
 }

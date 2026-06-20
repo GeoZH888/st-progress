@@ -149,5 +149,99 @@
       "math": "Ask me anything about the PDFs you've ingested — I'll find the most relevant passage.",
       "gallery": "Pick a surface on the left — drag the viewport to spin it, and watch the Catenoid ↔ Helicoid morph for the real magic."
     }
+  },
+  "admin": {
+    "shellTitle": "Admin",
+    "backToSite": "Back to site",
+    "signOut": "Sign out",
+    "search": "Search…",
+    "addNew": "Add new",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmDelete": "Delete this row? This cannot be undone.",
+    "allCategories": "All categories",
+    "auto": "(auto)",
+    "login": {
+      "title": "Admin sign-in",
+      "subtitle": "Sign in to edit milestones, figures, locations and the RAG library.",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Sign in",
+      "signingIn": "Signing in…"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "milestones": "Milestones",
+      "figures": "Figures",
+      "locations": "Locations",
+      "rag": "RAG library"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Current row counts — click a card to manage that table.",
+      "milestones": "Milestones",
+      "figures": "Figures",
+      "locations": "Locations",
+      "pdfs": "Ingested PDFs",
+      "chunks": "Chunks (embedded)"
+    },
+    "milestones": {
+      "heading": "Milestones",
+      "count_one": "{{count}} milestone in total",
+      "count_other": "{{count}} milestones in total",
+      "category": "Category",
+      "field": "Field",
+      "year": "Year (negative = BCE)",
+      "era": "Era",
+      "figure": "Key figure",
+      "location": "Location",
+      "title": "Title",
+      "desc": "Description",
+      "imageUrl": "Image URL"
+    },
+    "figures": {
+      "heading": "Figures",
+      "count_one": "{{count}} figure in total",
+      "count_other": "{{count}} figures in total",
+      "name": "Name",
+      "bio": "Bio",
+      "birth": "Birth year",
+      "death": "Death year",
+      "nationality": "Nationality",
+      "portrait": "Portrait URL"
+    },
+    "locations": {
+      "heading": "Locations",
+      "count_one": "{{count}} location in total",
+      "count_other": "{{count}} locations in total",
+      "name": "Name",
+      "lat": "Latitude",
+      "lng": "Longitude",
+      "city": "City",
+      "country": "Country"
+    },
+    "rag": {
+      "heading": "RAG library",
+      "summary": "{{docs}} PDFs · {{chunks}} chunks",
+      "refresh": "Refresh",
+      "uploadHint": "Adding a new PDF: drop it into ./pdfs/ locally and run `python scripts/ingest_pdfs.py`. Browser upload is out of scope.",
+      "title": "Title",
+      "filename": "Filename",
+      "pages": "Pages",
+      "chunks": "Chunks",
+      "created": "Ingested",
+      "view": "View chunks",
+      "hide": "Hide",
+      "page": "p.",
+      "noChunks": "No chunks for this document.",
+      "confirmDelete": "Delete {{filename}} and all of its chunks?"
+    },
+    "ai": {
+      "label": "AI",
+      "translateOthers": "Translate this into the other two languages",
+      "needsSource": "Type the source language first"
+    }
   }
 }

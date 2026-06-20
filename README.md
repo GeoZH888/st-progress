@@ -39,6 +39,25 @@ Paste in the Supabase SQL editor, in order:
 4. Add the `categories.<key>` and new `fields.<key>` strings to all three locale files in `src/i18n/locales/`.
 5. Append milestone INSERTs to `db/seed.sql` with the explicit `category` column.
 
+## Admin panel
+
+Hidden at `/admin` — Supabase Auth (email + password) protects the route, and Postgres RLS policies allow writes only for an allow-listed admin email (see `db/admin_schema.sql`).
+
+**One-time setup:**
+
+1. Paste `db/admin_schema.sql` into the Supabase SQL editor (after the other migrations). It creates `is_admin()` and RLS policies on every `stp_*` table.
+2. In the Supabase dashboard → Authentication → Users → **Add user**, set email = `admin@ci-world.com`, choose a strong password, and tick *Auto Confirm User*.
+3. If you change the admin email, edit the allow-list inside `is_admin()` and re-run the migration.
+4. Add `ANTHROPIC_API_KEY` to `.env` and to Netlify env vars (Site settings → Environment variables) — powers Leonardo's translate/draft helpers.
+
+**What's in the panel:**
+
+- Dashboard — row counts per table
+- Milestones / Figures / Locations — full trilingual editors with the ✨AI button on each field to translate from one language into the other two
+- RAG library — list ingested PDFs, see chunk counts, view individual chunks, delete a doc (cascades to its chunks)
+
+Browser-side PDF upload is intentionally out of scope — Marker needs Python. To add a PDF, drop it into `./pdfs/` locally and run `python scripts/ingest_pdfs.py`.
+
 ## Mascot art
 
 `Leonardo` is the single AI-assistant mascot across all three UI languages — a Renaissance polymath fits the site's "history of human progress" theme. The avatar is an inline placeholder SVG in `src/components/Mascot.jsx`. Drop final artwork into `public/mascots/leonardo.png` and swap the `<LeonardoAvatar />` call per the comment in that file.

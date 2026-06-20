@@ -1,0 +1,487 @@
+/* ============================================================
+   Admin styling: utilitarian, two-pane (sidebar + content),
+   pulls in some of the site's accent colors but otherwise stays
+   plain so editing data is the focus.
+   ============================================================ */
+
+:root {
+  --admin-bg: #f5f1e6;
+  --admin-ink: #2b2419;
+  --admin-muted: #6e6557;
+  --admin-border: #d6d2c4;
+  --admin-card: #fffefa;
+  --admin-accent: #2f6fbe;
+  --admin-accent-deep: #1e4a82;
+  --admin-danger: #b53620;
+  --admin-success: #18794e;
+  --admin-gold: #c9a85a;
+}
+
+/* ---------- shell ---------- */
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  background: var(--admin-bg);
+}
+
+.admin-sidebar {
+  background: #1f1810;
+  color: #ece5d2;
+  display: flex;
+  flex-direction: column;
+  padding: 1.2rem 0.8rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.admin-sidebar-head {
+  padding: 0 0.4rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.admin-sidebar-head strong {
+  font-size: 1rem;
+  color: var(--admin-gold);
+  letter-spacing: 0.02em;
+}
+
+.admin-user {
+  font-size: 0.75rem;
+  color: #8c8475;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-nav {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.15rem;
+  flex: 1;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  color: #ece5d2;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background 0.15s ease;
+}
+.admin-nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.admin-nav-link.active {
+  background: rgba(201, 168, 90, 0.18);
+  color: var(--admin-gold);
+}
+
+.admin-sidebar-foot {
+  margin-top: auto;
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-main {
+  padding: 1.6rem 2rem;
+  overflow-x: hidden;
+}
+
+@media (max-width: 720px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    position: static;
+    height: auto;
+  }
+  .admin-main {
+    padding: 1rem;
+  }
+}
+
+/* ---------- pages ---------- */
+.admin-page {
+  max-width: 1080px;
+}
+
+.admin-h1 {
+  margin: 0 0 0.2rem;
+  font-size: 1.5rem;
+  color: var(--admin-ink);
+}
+
+.admin-sub {
+  margin: 0 0 1.5rem;
+  color: var(--admin-muted);
+}
+
+/* ---------- buttons + fields ---------- */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.92rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.admin-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.admin-btn-primary {
+  background: var(--admin-accent);
+  color: #fff;
+}
+.admin-btn-primary:hover {
+  background: var(--admin-accent-deep);
+}
+.admin-btn-ghost {
+  background: transparent;
+  color: inherit;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.admin-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.admin-btn-danger {
+  background: var(--admin-danger);
+  color: #fff;
+}
+.admin-btn-danger:hover {
+  background: #8a1e10;
+}
+.admin-btn-link {
+  background: transparent;
+  color: var(--admin-accent);
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.admin-field {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
+}
+.admin-field > span {
+  font-size: 0.78rem;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.admin-field input,
+.admin-field select,
+.admin-field textarea {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+  color: var(--admin-ink);
+  width: 100%;
+}
+.admin-field textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.admin-field input:focus,
+.admin-field select:focus,
+.admin-field textarea:focus {
+  outline: none;
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(47, 111, 190, 0.15);
+}
+
+.admin-error {
+  margin: 0.5rem 0;
+  padding: 0.55rem 0.8rem;
+  background: #fbe9e7;
+  color: #9b2818;
+  border: 1px solid #f3c3bd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.admin-success {
+  margin: 0.5rem 0;
+  padding: 0.55rem 0.8rem;
+  background: #e6f2ec;
+  color: #14613e;
+  border: 1px solid #c4e0d2;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* ---------- login ---------- */
+.admin-login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--admin-bg);
+}
+.admin-login-card {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  padding: 1.8rem;
+  width: min(420px, 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.admin-login-card h1 {
+  margin: 0 0 0.3rem;
+  font-size: 1.4rem;
+  color: var(--admin-ink);
+}
+.admin-login-sub {
+  margin: 0 0 1.4rem;
+  color: var(--admin-muted);
+  font-size: 0.92rem;
+}
+.admin-login-form .admin-btn {
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+/* ---------- dashboard ---------- */
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.9rem;
+}
+.admin-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--admin-ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-stat:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+.admin-stat-emoji {
+  font-size: 1.8rem;
+}
+.admin-stat-count {
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.admin-stat-label {
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+  margin-top: 0.2rem;
+}
+
+/* ---------- list + editor (shared by milestones / figures / locations) ---------- */
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.admin-toolbar input[type='search'],
+.admin-toolbar select {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+  color: var(--admin-ink);
+}
+
+.admin-list {
+  display: grid;
+  gap: 0.5rem;
+}
+.admin-row {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+}
+.admin-row-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: 0;
+  color: inherit;
+}
+.admin-row-title {
+  flex: 1;
+  font-weight: 500;
+}
+.admin-row-meta {
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+}
+.admin-row-body {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--admin-border);
+}
+.admin-row-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  justify-content: flex-end;
+}
+
+.admin-field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.admin-field-grid h4 {
+  grid-column: 1 / -1;
+  margin: 0.6rem 0 0.2rem;
+  font-size: 0.95rem;
+  color: var(--admin-ink);
+}
+@media (max-width: 720px) {
+  .admin-field-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-trilingual {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+  margin-bottom: 0.9rem;
+}
+.admin-section-h {
+  margin: 1.1rem 0 0.4rem;
+  font-size: 0.92rem;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+@media (max-width: 720px) {
+  .admin-trilingual {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-trilingual-block {
+  display: grid;
+  gap: 0.35rem;
+  background: #faf6ec;
+  border: 1px solid #e8dfc6;
+  border-radius: 10px;
+  padding: 0.65rem;
+}
+.admin-trilingual-block header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-muted);
+}
+.admin-trilingual-block input,
+.admin-trilingual-block textarea {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  font: inherit;
+  width: 100%;
+  background: #fff;
+}
+.admin-trilingual-block textarea {
+  min-height: 86px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+/* ---------- AI assist button (sits inside admin-trilingual-block header) ---------- */
+.ai-assist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.55rem;
+  background: linear-gradient(180deg, #faf6ec, #f3e6c5);
+  border: 1px solid #c9a85a;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: #6b4a14;
+  cursor: pointer;
+  letter-spacing: 0;
+  text-transform: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.ai-assist-btn:hover {
+  background: linear-gradient(180deg, #f3e6c5, #ecd699);
+  transform: translateY(-0.5px);
+}
+.ai-assist-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---------- RAG admin ---------- */
+.admin-doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.admin-doc-table th,
+.admin-doc-table td {
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--admin-border);
+  font-size: 0.92rem;
+}
+.admin-doc-table th {
+  background: #f6efe0;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+}
+.admin-doc-table tr:last-child td {
+  border-bottom: none;
+}
+.admin-doc-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

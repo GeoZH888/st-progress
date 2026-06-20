@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Mascot from './components/Mascot'
+import AdminGuard from './components/AdminGuard'
 import { Loading } from './components/Status'
 import Home from './pages/Home'
 import Timeline from './pages/Timeline'
@@ -16,6 +17,14 @@ const MapPage = lazy(() => import('./pages/MapPage'))
 const MathSearch = lazy(() => import('./pages/MathSearch'))
 // 3D gallery is code-split: three.js + r3f + drei stay out of the main bundle.
 const Gallery = lazy(() => import('./pages/Gallery'))
+// Admin section is code-split as one chunk per page.
+const AdminLogin     = lazy(() => import('./pages/admin/Login'))
+const AdminLayout    = lazy(() => import('./pages/admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
+const AdminMilestones = lazy(() => import('./pages/admin/MilestonesAdmin'))
+const AdminFigures   = lazy(() => import('./pages/admin/FiguresAdmin'))
+const AdminLocations = lazy(() => import('./pages/admin/LocationsAdmin'))
+const AdminRag       = lazy(() => import('./pages/admin/RagAdmin'))
 
 // Maps the current path to a mascot tip key (trilingual, pulled from i18n).
 function tipKeyForPath(pathname) {
@@ -30,9 +39,12 @@ function tipKeyForPath(pathname) {
 
 export default function App() {
   const { pathname } = useLocation()
+  // The /admin section has its own sidebar shell, so hide the public Header
+  // and Mascot there to avoid double chrome.
+  const isAdmin = pathname.startsWith('/admin')
   return (
     <div className="app-shell">
-      <Header />
+      {!isAdmin && <Header />}
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -43,10 +55,28 @@ export default function App() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/math" element={<MathSearch />} />
           <Route path="/gallery" element={<Gallery />} />
+
+          {/* Admin section */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminGuard>
+                <AdminLayout />
+              </AdminGuard>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="milestones" element={<AdminMilestones />} />
+            <Route path="figures" element={<AdminFigures />} />
+            <Route path="locations" element={<AdminLocations />} />
+            <Route path="rag" element={<AdminRag />} />
+          </Route>
+
           <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>
-      <Mascot tipKey={tipKeyForPath(pathname)} />
+      {!isAdmin && <Mascot tipKey={tipKeyForPath(pathname)} />}
     </div>
   )
 }
