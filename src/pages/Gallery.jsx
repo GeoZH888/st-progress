@@ -6,8 +6,10 @@ import { SURFACES, DEFAULT_SURFACE_ID, getSurface, localizedName } from '../lib/
 import {
   PALETTES, BACKGROUNDS,
   DEFAULT_PALETTE, DEFAULT_BACKGROUND,
-  paletteById, backgroundById, localizedThemeName
+  paletteById, backgroundById, localizedThemeName, paletteGradientCss
 } from '../lib/themes'
+
+const LIGHT_BG_IDS = new Set(['parchment', 'paper'])
 import { Loading } from '../components/Status'
 import './Gallery.css'
 
@@ -136,7 +138,7 @@ export default function Gallery() {
                   key={p.id}
                   type="button"
                   className={`gallery-swatch palette-swatch${paletteId === p.id ? ' on' : ''}`}
-                  style={{ background: `linear-gradient(90deg, ${p.low}, ${p.high})` }}
+                  style={{ background: paletteGradientCss(p) }}
                   onClick={() => setPaletteId(p.id)}
                   title={localizedThemeName(p, lang)}
                   aria-label={localizedThemeName(p, lang)}
@@ -150,7 +152,7 @@ export default function Gallery() {
                   key={b.id}
                   type="button"
                   className={`gallery-swatch bg-swatch${backgroundId === b.id ? ' on' : ''}`}
-                  style={{ background: b.color, borderColor: b.id === 'parchment' ? '#c9a85a' : undefined }}
+                  style={{ background: b.color, borderColor: LIGHT_BG_IDS.has(b.id) ? '#c9a85a' : undefined }}
                   onClick={() => setBackgroundId(b.id)}
                   title={localizedThemeName(b, lang)}
                   aria-label={localizedThemeName(b, lang)}

@@ -3,22 +3,25 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { ParametricGeometry } from 'three/examples/jsm/geometries/ParametricGeometry.js'
-import { paletteById, backgroundById, DEFAULT_PALETTE, DEFAULT_BACKGROUND } from '../lib/themes'
+import { paletteById, backgroundById, stopsToRgb, rgbAtT, DEFAULT_PALETTE, DEFAULT_BACKGROUND } from '../lib/themes'
 
 // Default-only fallback used when a component is mounted without a palette prop.
 const FALLBACK_PAL = paletteById(DEFAULT_PALETTE)
 const AUTO_ROTATE_SPEED = 0.25
 
-function colorsOf(palette) {
+// Returns the palette's id (cache key for memoization) + its stops as RGB
+// triples in [0,1] so the inner loops don't allocate THREE.Color instances.
+function stopsOf(palette) {
   const p = palette || FALLBACK_PAL
-  return { low: p.low, high: p.high }
+  return { id: p.id, rgbStops: stopsToRgb(p.stops) }
 }
 
 /**
  * Recolor every vertex by its world Y so the surface reads like a heightmap.
  * Cheap and runs once for static surfaces; the morph re-runs it each frame.
+ * `rgbStops` is the palette pre-converted to RGB triples in [0,1].
  */
-function applyHeightGradient(geometry, colorA, colorB) {
+function applyHeightGradient(geometry, rgbStops) {
   const pos = geometry.attributes.position
   const count = pos.count
   const colors = geometry.attributes.color?.array ?? new Float32Array(count * 3)
@@ -30,12 +33,9 @@ function applyHeightGradient(geometry, colorA, colorB) {
     if (y > maxY) maxY = y
   }
   const range = maxY - minY || 1
-  const a = new THREE.Color(colorA)
-  const b = new THREE.Color(colorB)
-  const c = new THREE.Color()
   for (let i = 0; i < count; i++) {
     const t = (pos.getY(i) - minY) / range
-    c.copy(a).lerp(b, t)
+    const c = rgbAtT(rgbStops, t)
     colors[i * 3] = c.r
     colors[i * 3 + 1] = c.g
     colors[i * 3 + 2] = c.b
@@ -71,27 +71,28 @@ function SurfaceLayers({ geometry, renderMode = 'solid' }) {
         <mesh geometry={geometry}>
           <meshStandardMaterial
             side={THREE.DoubleSide}
-            metalness={0.28}
-            roughness={0.5}
+            metalness={0.1}
+            roughness={0.35}
+            envMapIntensity={0.8}
             vertexColors
             transparent={renderMode === 'both'}
-            opacity={renderMode === 'both' ? 0.78 : 1}
+            opacity={renderMode === 'both' ? 0.82 : 1}
           />
         </mesh>
       )}
       {showWire && (
         <mesh geometry={geometry} scale={renderMode === 'both' ? 1.003 : 1}>
           <meshBasicMaterial
-            color={renderMode === 'both' ? '#f0d68a' : '#c9a85a'}
+            color={renderMode === 'both' ? '#ffffff' : '#c9a85a'}
             wireframe
             transparent
-            opacity={renderMode === 'both' ? 0.45 : 0.9}
+            opacity={renderMode === 'both' ? 0.32 : 0.9}
           />
         </mesh>
       )}
       {showPoints && (
         <points geometry={geometry}>
-          <pointsMaterial color="#c9a85a" size={0.05} sizeAttenuation />
+          <pointsMaterial vertexColors size={0.045} sizeAttenuation />
         </points>
       )}
     </>
@@ -112,27 +113,27 @@ function StaticSurface({ geometry, renderMode }) {
 }
 
 function ParametricSurfaceMesh({ surface, renderMode, palette, params }) {
-  const { low, high } = colorsOf(palette)
+  const { id: palId, rgbStops } = stopsOf(palette)
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
     const sampler = (u, v, target) => surface.sampler(u, v, target, params)
     const g = new ParametricGeometry(sampler, surface.uvSegments, surface.uvSegments)
     fitGeometry(g)
-    applyHeightGradient(g, low, high)
+    applyHeightGradient(g, rgbStops)
     return g
-  }, [surface, low, high, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [surface, palId, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
   return <StaticSurface geometry={geometry} renderMode={renderMode} />
 }
 
 function BuiltinSurfaceMesh({ surface, renderMode, palette, params }) {
-  const { low, high } = colorsOf(palette)
+  const { id: palId, rgbStops } = stopsOf(palette)
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
     const g = surface.build(THREE, params)
     fitGeometry(g)
-    applyHeightGradient(g, low, high)
+    applyHeightGradient(g, rgbStops)
     return g
-  }, [surface, low, high, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [surface, palId, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
   return <StaticSurface geometry={geometry} renderMode={renderMode} />
 }
 
@@ -143,11 +144,13 @@ function BuiltinSurfaceMesh({ surface, renderMode, palette, params }) {
  */
 function MorphingSurfaceMesh({ surface, renderMode, palette, params }) {
   const groupRef = useRef()
-  const { low, high } = colorsOf(palette)
-  // Keep params in a ref so useFrame can read the latest without re-creating
-  // the closure (which would re-allocate buffers etc.)
+  const { rgbStops } = stopsOf(palette)
+  // Keep params + stops in refs so the per-frame loop reads the latest values
+  // without re-creating any closures or allocating extra buffers.
   const paramsRef = useRef(params)
+  const stopsRef = useRef(rgbStops)
   useEffect(() => { paramsRef.current = params }, [params])
+  useEffect(() => { stopsRef.current = rgbStops }, [rgbStops])
 
   const geometry = useMemo(() => {
     const N = surface.uvSegments
@@ -178,9 +181,6 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params }) {
   useEffect(() => () => geometry.dispose(), [geometry])
 
   const tmp = useMemo(() => new THREE.Vector3(), [])
-  const colorA = useMemo(() => new THREE.Color(low), [low])
-  const colorB = useMemo(() => new THREE.Color(high), [high])
-  const colorTmp = useMemo(() => new THREE.Color(), [])
 
   useFrame((state, delta) => {
     if (!groupRef.current) return
@@ -205,12 +205,13 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params }) {
     }
     const range = maxY - minY || 1
     const verts = (N + 1) * (N + 1)
+    const stops = stopsRef.current
     for (let i = 0; i < verts; i++) {
       const tt = (pos[i * 3 + 1] - minY) / range
-      colorTmp.copy(colorA).lerp(colorB, tt)
-      col[i * 3] = colorTmp.r
-      col[i * 3 + 1] = colorTmp.g
-      col[i * 3 + 2] = colorTmp.b
+      const c = rgbAtT(stops, tt)
+      col[i * 3] = c.r
+      col[i * 3 + 1] = c.g
+      col[i * 3 + 2] = c.b
     }
     geometry.attributes.position.needsUpdate = true
     geometry.attributes.color.needsUpdate = true
@@ -237,29 +238,26 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params }) {
  */
 function AttractorMesh({ surface, palette, params }) {
   const meshRef = useRef()
-  const { low, high } = colorsOf(palette)
+  const { id: palId, rgbStops } = stopsOf(palette)
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
     const flat = surface.integrate(surface.points || 6000, params)
     const positions = flat instanceof Float32Array ? flat : new Float32Array(flat)
     const count = positions.length / 3
     const colors = new Float32Array(count * 3)
-    const cA = new THREE.Color(low)
-    const cB = new THREE.Color(high)
-    const cTmp = new THREE.Color()
     for (let i = 0; i < count; i++) {
       const t = i / (count - 1)
-      cTmp.copy(cA).lerp(cB, t)
-      colors[i * 3] = cTmp.r
-      colors[i * 3 + 1] = cTmp.g
-      colors[i * 3 + 2] = cTmp.b
+      const c = rgbAtT(rgbStops, t)
+      colors[i * 3] = c.r
+      colors[i * 3 + 1] = c.g
+      colors[i * 3 + 2] = c.b
     }
     const g = new THREE.BufferGeometry()
     g.setAttribute('position', new THREE.BufferAttribute(positions, 3))
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3))
     fitGeometry(g)
     return g
-  }, [surface, low, high, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [surface, palId, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => geometry.dispose(), [geometry])
 
@@ -282,22 +280,19 @@ function AttractorMesh({ surface, palette, params }) {
  */
 function PointsMesh({ surface, palette, params }) {
   const meshRef = useRef()
-  const { low, high } = colorsOf(palette)
+  const { id: palId, rgbStops } = stopsOf(palette)
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
     const flat = surface.generate(surface.pointCount || 2000, params)
     const positions = flat instanceof Float32Array ? flat : new Float32Array(flat)
     const count = positions.length / 3
     const colors = new Float32Array(count * 3)
-    const cA = new THREE.Color(low)
-    const cB = new THREE.Color(high)
-    const cTmp = new THREE.Color()
     for (let i = 0; i < count; i++) {
       const t = count > 1 ? i / (count - 1) : 0
-      cTmp.copy(cA).lerp(cB, t)
-      colors[i * 3] = cTmp.r
-      colors[i * 3 + 1] = cTmp.g
-      colors[i * 3 + 2] = cTmp.b
+      const c = rgbAtT(rgbStops, t)
+      colors[i * 3] = c.r
+      colors[i * 3 + 1] = c.g
+      colors[i * 3 + 2] = c.b
     }
     const g = new THREE.BufferGeometry()
     g.setAttribute('position', new THREE.BufferAttribute(positions, 3))
@@ -305,7 +300,7 @@ function PointsMesh({ surface, palette, params }) {
     fitGeometry(g)
     if (surface.animated) g.setDrawRange(0, 0)
     return g
-  }, [surface, low, high, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [surface, palId, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => geometry.dispose(), [geometry])
 
@@ -357,10 +352,10 @@ export default function SurfaceViewer({
 }) {
   const palette = paletteById(paletteId)
   const bg = backgroundById(backgroundId)
-  // Lighter backgrounds (parchment) need a lower ambient so the surface still
-  // has definition; darker scenes can push ambient up a touch.
-  const isLight = bg.id === 'parchment'
-  const ambient = isLight ? 0.65 : 0.45
+  // Light backgrounds (parchment / paper) bounce more light back at the
+  // surface, so we lower the ambient to keep contrast; dark scenes get more.
+  const isLight = bg.id === 'parchment' || bg.id === 'paper'
+  const ambient = isLight ? 0.7 : 0.5
   return (
     <Canvas
       key={surface.id} // force a fresh canvas so geometries dispose cleanly
