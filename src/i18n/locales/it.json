@@ -139,9 +139,9 @@
     "loadError": "Impossibile caricare i dati. Controlla la configurazione di Supabase."
   },
   "mascot": {
-    "name": "Claudio",
+    "name": "Leonardo",
     "tips": {
-      "home": "Ciao! Sono Claudio, la tua guida. Scegli come esplorare — io partirei dalla Cronologia!",
+      "home": "Salve! Sono Leonardo, la tua guida tra le tappe del progresso umano. Scegli come esplorare — io partirei dalla Cronologia!",
       "timeline": "Passa tra Scienza & Tecnologia ed Economia & Industria, filtra per campo o salta direttamente a un'epoca.",
       "fields": "Scegli un campo per vederne le svolte in ordine — ognuna apre la sua storia completa.",
       "map": "I segnaposto sono colorati per campo. Tocca \"Vicino a me\" per scoprire le invenzioni intorno a te.",

@@ -3,83 +3,116 @@ import { useTranslation } from 'react-i18next'
 import './Mascot.css'
 
 /*
- * Mascot system (shared concept with the sibling "Travel in Italia" app)
- * ---------------------------------------------------------------------
- * Two guides that switch by active UI language:
- *   - 巧巧 (Qiǎoqiǎo), female, shown when language is `zh`
- *   - Claudio,        male,   shown when language is `it` or `en`
+ * Mascot / AI-assistant: Leonardo
+ * --------------------------------
+ * One guide for all three UI languages — a Renaissance polymath fits the site
+ * theme (history of progress) and avoids picking one culture's avatar over
+ * the others. Replaced the prior dual 巧巧 / Claudio system on 2026-06-20.
  *
- * The speech-bubble tip is trilingual and pulled from i18n (mascot.tips.<tipKey>),
- * so pass a `tipKey` matching the current page (e.g. "home", "timeline", "map").
+ * The speech-bubble tip is trilingual and pulled from i18n
+ * (mascot.tips.<tipKey>), so pass a `tipKey` matching the current page
+ * (e.g. "home", "timeline", "map", "math", "gallery").
  *
  * >>> REPLACE PLACEHOLDER ART HERE <<<
- * The avatars below are inline placeholder SVGs (clearly-female / clearly-male
- * friendly characters, given a science/explorer accent). To use final artwork,
- * drop files into /public/mascots/ (e.g. qiaoqiao.png, claudio.png) and swap the
- * <…Avatar/> calls for:
- *   <img src={`/mascots/${isZh ? 'qiaoqiao' : 'claudio'}.png`} alt={name} />
+ * The avatar below is an inline placeholder SVG. To use final artwork, drop a
+ * file into /public/mascots/ (e.g. leonardo.png) and swap the <LeonardoAvatar />
+ * call for:
+ *   <img src="/mascots/leonardo.png" alt={name} />
  */
 
-function QiaoqiaoAvatar() {
-  // Placeholder: friendly female guide — bob haircut, science accent.
+function LeonardoAvatar() {
   return (
     <svg viewBox="0 0 80 80" width="56" height="56" aria-hidden="true">
-      <circle cx="40" cy="40" r="38" fill="#e6c069" />
-      {/* hair back */}
-      <path d="M16 44a24 24 0 0 1 48 0c0 6-4 6-4 6H20s-4 0-4-6z" fill="#33271c" />
-      {/* face */}
-      <circle cx="40" cy="40" r="17" fill="#ffe0c2" />
-      {/* fringe */}
-      <path d="M23 36c2-9 9-14 17-14s15 5 17 14c-5-3-11-4-17-4s-12 1-17 4z" fill="#33271c" />
-      {/* eyes */}
-      <circle cx="34" cy="40" r="2.2" fill="#2e211a" />
-      <circle cx="46" cy="40" r="2.2" fill="#2e211a" />
-      {/* smile */}
-      <path d="M35 47c2 2.5 8 2.5 10 0" stroke="#1f3a5f" strokeWidth="2" fill="none" strokeLinecap="round" />
-      {/* cheeks */}
-      <circle cx="31" cy="45" r="2" fill="#f3a98e" opacity="0.7" />
-      <circle cx="49" cy="45" r="2" fill="#f3a98e" opacity="0.7" />
-      {/* little star accent (feminine + science cue) */}
-      <path d="M55 27l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#1f3a5f" />
-    </svg>
-  )
-}
+      {/* parchment background */}
+      <circle cx="40" cy="40" r="38" fill="#e8d9b5" />
 
-function ClaudioAvatar() {
-  // Placeholder: friendly male guide — short hair, moustache.
-  return (
-    <svg viewBox="0 0 80 80" width="56" height="56" aria-hidden="true">
-      <circle cx="40" cy="40" r="38" fill="#9fb0d6" />
-      {/* hair */}
-      <path d="M24 34c0-9 7-15 16-15s16 6 16 15c-4-3-9-4-16-4s-12 1-16 4z" fill="#2a2118" />
+      {/* beard back fill (lighter, behind the face) */}
+      <path
+        d="M22 48c0 14 8 24 18 24s18-10 18-24c-3 4-9 6-18 6s-15-2-18-6z"
+        fill="#f0ebe0"
+      />
+
       {/* face */}
-      <circle cx="40" cy="40" r="17" fill="#ffe0c2" />
-      {/* eyebrows */}
-      <path d="M31 35h6M43 35h6" stroke="#2a2118" strokeWidth="2" strokeLinecap="round" />
-      {/* eyes */}
-      <circle cx="34" cy="40" r="2.2" fill="#2e211a" />
-      <circle cx="46" cy="40" r="2.2" fill="#2e211a" />
-      {/* moustache (masculine cue) */}
-      <path d="M33 49c2 2 5 2 7 0 2 2 5 2 7 0" stroke="#2a2118" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-      {/* smile */}
-      <path d="M36 52c2 2 6 2 8 0" stroke="#1f3a5f" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      <circle cx="40" cy="42" r="16" fill="#f5d4ad" />
+
+      {/* cap: soft floppy Renaissance beret in deep red */}
+      <path
+        d="M22 30c0-8 8-14 18-14s18 6 18 14c-2-2-7-3-18-3s-16 1-18 3z"
+        fill="#8a2424"
+      />
+      <ellipse cx="40" cy="23" rx="14" ry="3" fill="#a83232" />
+      <path
+        d="M22 30c2-1 8-2 18-2s16 1 18 2c0 1-2 2-3 3-2-1-7-2-15-2s-13 1-15 2c-1-1-3-2-3-3z"
+        fill="#651818"
+      />
+
+      {/* hair tufts peeking out under the cap */}
+      <path
+        d="M23 34c1 3 1 5 0 8 M57 34c-1 3 -1 5 0 8"
+        stroke="#cfc7b3"
+        strokeWidth="2.2"
+        fill="none"
+        strokeLinecap="round"
+      />
+
+      {/* eyebrows (scholarly) */}
+      <path d="M30 37c2-1 6-1 8 0" stroke="#7a6b58" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+      <path d="M42 37c2-1 6-1 8 0" stroke="#7a6b58" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+
+      {/* eyes + highlights */}
+      <circle cx="34" cy="41" r="1.9" fill="#2e211a" />
+      <circle cx="46" cy="41" r="1.9" fill="#2e211a" />
+      <circle cx="34.7" cy="40.4" r="0.55" fill="#fff" />
+      <circle cx="46.7" cy="40.4" r="0.55" fill="#fff" />
+
+      {/* nose hint */}
+      <path d="M40 43c-1 2-1 4 0 5 1 0 2 0 2 0" stroke="#c4977a" strokeWidth="1" fill="none" strokeLinecap="round" />
+
+      {/* moustache */}
+      <path
+        d="M30 51c3 2 7 2 10 0 3 2 7 2 10 0"
+        stroke="#cfc7b3"
+        strokeWidth="2.4"
+        fill="none"
+        strokeLinecap="round"
+      />
+
+      {/* beard cascade (the iconic signature) */}
+      <path
+        d="M28 53c1 5 3 9 4 12 1 3 0 5-1 7 4-1 6-1 9-1s5 0 9 1c-1-2-2-4-1-7 1-3 3-7 4-12 -3 2-7 3-12 3s-9-1-12-3z"
+        fill="#ece5d2"
+        stroke="#cfc7b3"
+        strokeWidth="0.5"
+      />
+      <path
+        d="M33 58c0 4 0 7 1 10 M40 60c0 4 0 7 0 10 M47 58c0 4 0 7 -1 10"
+        stroke="#cfc7b3"
+        strokeWidth="0.6"
+        fill="none"
+      />
+
+      {/* subtle warm smile beneath the moustache */}
+      <path d="M36 50c2 1 6 1 8 0" stroke="#a8836a" strokeWidth="0.8" fill="none" strokeLinecap="round" />
     </svg>
   )
 }
 
 export default function Mascot({ tipKey = 'home' }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [open, setOpen] = useState(true)
 
-  const isZh = i18n.language === 'zh'
-  const name = t('mascot.name') // 巧巧 or Claudio
+  const name = t('mascot.name') // "Leonardo" in all three locales
   const tip = t(`mascot.tips.${tipKey}`, { defaultValue: t('mascot.tips.home') })
 
   return (
-    <div className="mascot" data-mascot={isZh ? 'qiaoqiao' : 'claudio'}>
+    <div className="mascot" data-mascot="leonardo">
       {open && (
         <div className="mascot-bubble" role="status">
-          <button className="mascot-close" aria-label="Close" onClick={() => setOpen(false)}>
+          <button
+            className="mascot-close"
+            aria-label="Close"
+            onClick={() => setOpen(false)}
+          >
             ×
           </button>
           <strong className="mascot-name">{name}</strong>
@@ -92,7 +125,7 @@ export default function Mascot({ tipKey = 'home' }) {
         aria-label={name}
         onClick={() => setOpen((v) => !v)}
       >
-        {isZh ? <QiaoqiaoAvatar /> : <ClaudioAvatar />}
+        <LeonardoAvatar />
       </button>
     </div>
   )

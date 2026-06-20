@@ -41,7 +41,7 @@ Paste in the Supabase SQL editor, in order:
 
 ## Mascot art
 
-`巧巧` (ZH) / `Claudio` (IT · EN) currently use inline placeholder SVGs in `src/components/Mascot.jsx`. Drop final artwork into `public/mascots/` and swap the `<*Avatar />` calls per the comment in that file.
+`Leonardo` is the single AI-assistant mascot across all three UI languages — a Renaissance polymath fits the site's "history of human progress" theme. The avatar is an inline placeholder SVG in `src/components/Mascot.jsx`. Drop final artwork into `public/mascots/leonardo.png` and swap the `<LeonardoAvatar />` call per the comment in that file.
 
 ## Math RAG
 

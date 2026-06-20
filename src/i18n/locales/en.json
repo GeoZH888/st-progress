@@ -139,9 +139,9 @@
     "loadError": "Couldn't load data. Check your Supabase configuration."
   },
   "mascot": {
-    "name": "Claudio",
+    "name": "Leonardo",
     "tips": {
-      "home": "Hi! I'm Claudio, your guide. Pick a way to explore — I'd start with the Timeline!",
+      "home": "Salve! I'm Leonardo, your guide across the milestones of human progress. Pick a way to explore — I'd start with the Timeline!",
       "timeline": "Switch between Science & Tech and Economy & Industry, filter by field, or jump straight to an era.",
       "fields": "Pick a field to see its breakthroughs in order — each one opens its full story.",
       "map": "Markers are colored by field. Tap \"Near me\" to find discoveries around you.",
