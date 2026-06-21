@@ -40,6 +40,25 @@ const SPEED_PRESETS = [
   { id: 'fast',   value: 2.2,  glyph: '⏩' }
 ]
 const SPEED_LS_KEY = 'stp-gallery-rspeed'
+const PARAMS_LS_KEY = 'stp-gallery-params' // map: surface.id -> { paramKey: value }
+
+function defaultParams(surface) {
+  const out = {}
+  if (surface?.params) {
+    for (const p of surface.params) out[p.key] = p.default
+  }
+  return out
+}
+
+function loadParamsMap() {
+  try {
+    const raw = localStorage.getItem(PARAMS_LS_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch { return {} }
+}
+function saveParamsMap(map) {
+  try { localStorage.setItem(PARAMS_LS_KEY, JSON.stringify(map)) } catch { /* ignore */ }
+}
 
 function Equation({ latex }) {
   const html = katex.renderToString(latex, { displayMode: true, throwOnError: false })
@@ -58,6 +77,11 @@ export default function Gallery() {
   })
   const visitorSpeed = (SPEED_PRESETS.find((s) => s.id === speedId) || SPEED_PRESETS[2]).value
   useEffect(() => { try { localStorage.setItem(SPEED_LS_KEY, speedId) } catch { /* ignore */ } }, [speedId])
+
+  // Per-surface parameter values (only meaningful for built-ins with a
+  // surface.params schema). Loaded once from localStorage, persisted on change.
+  const [paramsMap, setParamsMap] = useState(() => loadParamsMap())
+  useEffect(() => { saveParamsMap(paramsMap) }, [paramsMap])
 
   // Shared site-wide surfaces fetched from Supabase (published only, enforced
   // by RLS so we don't have to filter client-side).
@@ -88,6 +112,27 @@ export default function Gallery() {
   // Speed is a visitor-controlled setting (separate from admin view_config);
   // start it from the saved view_config if present, then let the user override.
   const adminSpeed = surface?.viewConfig?.speed
+
+  // Resolve params for the current surface — visitor's tweaks override the
+  // schema defaults. Shared surfaces don't have a params schema → null.
+  const currentParams = useMemo(() => {
+    if (!surface?.params) return null
+    return { ...defaultParams(surface), ...(paramsMap[surface.id] || {}) }
+  }, [surface, paramsMap])
+
+  function updateParam(key, value) {
+    setParamsMap((m) => ({
+      ...m,
+      [surface.id]: { ...(m[surface.id] || defaultParams(surface)), [key]: value }
+    }))
+  }
+  function resetParams() {
+    setParamsMap((m) => {
+      const next = { ...m }
+      delete next[surface.id]
+      return next
+    })
+  }
 
   return (
     <div className="page gallery-page">
@@ -126,6 +171,7 @@ export default function Gallery() {
                 backgroundId={view.backgroundId}
                 motion={view.motion}
                 rotationSpeed={visitorSpeed}
+                params={currentParams}
               />
             </Suspense>
             <div
@@ -150,6 +196,40 @@ export default function Gallery() {
           </div>
         </div>
       </div>
+
+      {/* --- per-surface parameter sliders (only built-ins with a params schema) --- */}
+      {surface.params && currentParams && (
+        <div className="gallery-params-bar" style={{ marginTop: '0.6rem' }}>
+          <div className="gallery-params-head">
+            <span className="gallery-style-label">{t('gallery.params')}</span>
+            <button type="button" className="gallery-params-reset" onClick={resetParams}>
+              ↺ {t('gallery.reset')}
+            </button>
+          </div>
+          <div className="gallery-params-grid">
+            {surface.params.map((p) => {
+              const val = currentParams[p.key]
+              const label = p[`label_${lang}`] || p.label || p.key
+              const display = p.step < 1 ? Number(val).toFixed(p.precision ?? 3) : val
+              return (
+                <label key={p.key} className="gallery-param">
+                  <span className="gallery-param-label">
+                    {label} <code>{display}</code>
+                  </span>
+                  <input
+                    type="range"
+                    min={p.min}
+                    max={p.max}
+                    step={p.step}
+                    value={val}
+                    onChange={(e) => updateParam(p.key, p.step < 1 ? parseFloat(e.target.value) : parseInt(e.target.value, 10))}
+                  />
+                </label>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       <section className="gallery-detail">
         <div className="gallery-detail-head">
