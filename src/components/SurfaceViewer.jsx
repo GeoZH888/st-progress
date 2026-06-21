@@ -129,12 +129,11 @@ function SurfaceLayers({ geometry, renderMode = 'solid' }) {
       )}
       {showWire && (
         <mesh geometry={geometry} scale={renderMode === 'both' ? 1.003 : 1}>
-          <meshBasicMaterial
-            color={renderMode === 'both' ? '#ffffff' : '#c9a85a'}
-            wireframe
-            transparent
-            opacity={renderMode === 'both' ? 0.32 : 0.9}
-          />
+          {/* wireframe-only uses vertexColors so the flow ripples through the
+              wires too; "both" stays white so it reads as overlay. */}
+          {renderMode === 'both'
+            ? <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.32} />
+            : <meshBasicMaterial vertexColors wireframe transparent opacity={0.9} />}
         </mesh>
       )}
       {showPoints && (
@@ -146,15 +145,64 @@ function SurfaceLayers({ geometry, renderMode = 'solid' }) {
   )
 }
 
-function StaticSurface({ geometry, renderMode, motion = 0 }) {
+function StaticSurface({ geometry, rgbStops, renderMode, motion = 0 }) {
   const groupRef = useRef()
   const seed = useMemo(newMotionSeed, [])
+
+  // Cache per-vertex height-t so each frame's recolour is just stops lookup
+  // + the moving brightness peak — no Y read or min/max scan per frame.
+  const heightTRef = useRef(null)
+  const stopsRef = useRef(rgbStops)
+  useEffect(() => { stopsRef.current = rgbStops }, [rgbStops])
+
+  useEffect(() => {
+    const pos = geometry.attributes.position
+    const count = pos.count
+    let minY = Infinity, maxY = -Infinity
+    for (let i = 0; i < count; i++) {
+      const y = pos.getY(i)
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
+    }
+    const range = maxY - minY || 1
+    const ht = new Float32Array(count)
+    for (let i = 0; i < count; i++) ht[i] = (pos.getY(i) - minY) / range
+    heightTRef.current = ht
+  }, [geometry])
+
   useFrame((state, delta) => {
     const g = groupRef.current
     if (!g) return
+    const time = state.clock.elapsedTime
     g.rotation.y += delta * AUTO_ROTATE_SPEED
-    applyMotion(g, state.clock.elapsedTime, seed, motion, 1)
+    applyMotion(g, time, seed, motion, 1)
+
+    // Surface flow: gentler than on lines/points so the underlying
+    // shape stays readable. Two slow brightness peaks chase across
+    // the vertex order — on parametric grids this looks like a band
+    // sweeping across the sphere / strip.
+    const ht = heightTRef.current
+    const stops = stopsRef.current
+    if (!ht || !stops) return
+    const col = geometry.attributes.color.array
+    const count = ht.length
+    const denom = Math.max(1, count - 1)
+    const headPos = (time * 0.30) % 1
+    const head2 = ((time * 0.20) + 0.5) % 1
+    for (let i = 0; i < count; i++) {
+      const c = rgbAtT(stops, ht[i])
+      const pos = i / denom
+      let d1 = Math.abs(pos - headPos); d1 = Math.min(d1, 1 - d1)
+      let d2 = Math.abs(pos - head2);   d2 = Math.min(d2, 1 - d2)
+      const boost = Math.exp(-d1 * d1 * 120) + 0.55 * Math.exp(-d2 * d2 * 120)
+      const k = 0.72 + 0.28 * Math.min(1, boost)
+      col[i * 3]     = Math.min(1, c.r * k + boost * (1 - c.r) * 0.4)
+      col[i * 3 + 1] = Math.min(1, c.g * k + boost * (1 - c.g) * 0.4)
+      col[i * 3 + 2] = Math.min(1, c.b * k + boost * (1 - c.b) * 0.4)
+    }
+    geometry.attributes.color.needsUpdate = true
   })
+
   useEffect(() => () => geometry.dispose(), [geometry])
   return (
     <group ref={groupRef}>
@@ -170,10 +218,10 @@ function ParametricSurfaceMesh({ surface, renderMode, palette, params, motion })
     const sampler = (u, v, target) => surface.sampler(u, v, target, params)
     const g = new ParametricGeometry(sampler, surface.uvSegments, surface.uvSegments)
     fitGeometry(g)
-    applyHeightGradient(g, rgbStops)
+    applyHeightGradient(g, rgbStops) // initial colours; useFrame overrides
     return g
-  }, [surface, palId, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
-  return <StaticSurface geometry={geometry} renderMode={renderMode} motion={motion} />
+  }, [surface, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} />
 }
 
 function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion }) {
@@ -184,8 +232,8 @@ function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion }) {
     fitGeometry(g)
     applyHeightGradient(g, rgbStops)
     return g
-  }, [surface, palId, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
-  return <StaticSurface geometry={geometry} renderMode={renderMode} motion={motion} />
+  }, [surface, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} />
 }
 
 /**
@@ -260,12 +308,23 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0 
     const range = maxY - minY || 1
     const verts = (N + 1) * (N + 1)
     const stops = stopsRef.current
+    // Same surface-flow pattern as StaticSurface: two slow brightness
+    // peaks chase across vertex order, giving Modal sphere / catenoid-
+    // helicoid a visible flowing highlight as well.
+    const denom = Math.max(1, verts - 1)
+    const headPos = (time * 0.30) % 1
+    const head2 = ((time * 0.20) + 0.5) % 1
     for (let i = 0; i < verts; i++) {
       const tt = (pos[i * 3 + 1] - minY) / range
       const c = rgbAtT(stops, tt)
-      col[i * 3] = c.r
-      col[i * 3 + 1] = c.g
-      col[i * 3 + 2] = c.b
+      const p = i / denom
+      let d1 = Math.abs(p - headPos); d1 = Math.min(d1, 1 - d1)
+      let d2 = Math.abs(p - head2);   d2 = Math.min(d2, 1 - d2)
+      const boost = Math.exp(-d1 * d1 * 120) + 0.55 * Math.exp(-d2 * d2 * 120)
+      const k = 0.72 + 0.28 * Math.min(1, boost)
+      col[i * 3]     = Math.min(1, c.r * k + boost * (1 - c.r) * 0.4)
+      col[i * 3 + 1] = Math.min(1, c.g * k + boost * (1 - c.g) * 0.4)
+      col[i * 3 + 2] = Math.min(1, c.b * k + boost * (1 - c.b) * 0.4)
     }
     geometry.attributes.position.needsUpdate = true
     geometry.attributes.color.needsUpdate = true
