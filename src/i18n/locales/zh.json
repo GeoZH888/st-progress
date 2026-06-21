@@ -15,6 +15,7 @@
     "title": "人类进步里程碑",
     "subtitle": "从远古的麦田到 CRISPR——纵览推动人类前行的发现、发明与制度，跨越每个时代、每个领域、世界每个角落。",
     "browseDomain": "选一个领域开始",
+    "fromGallery": "来自 3D 几何馆",
     "exploreBy": "或者，挑一种探索方式",
     "modes": {
       "timeline": {
@@ -322,7 +323,11 @@
       "unpublishTip": "在公开 /gallery 中隐藏该曲面",
       "published": "已发布",
       "draft": "草稿",
-      "saveFirst": "请先保存曲面，再发布。"
+      "saveFirst": "请先保存曲面，再发布。",
+      "featuredLabel": "在首页推荐显示",
+      "displayMode": "首页展示模式",
+      "modeStatic": "静态（定格 + 微弱流光）",
+      "modeAnimated": "动态（旋转 + 呼吸）"
     }
   }
 }

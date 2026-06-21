@@ -15,6 +15,7 @@
     "title": "Milestones of Human Progress",
     "subtitle": "From the wheat fields of antiquity to CRISPR — explore the discoveries, inventions and institutions that have moved humanity forward, across every era, every domain and every corner of the world.",
     "browseDomain": "Browse a domain",
+    "fromGallery": "From the 3D Gallery",
     "exploreBy": "Or pick a way to explore",
     "modes": {
       "timeline": {
@@ -322,7 +323,11 @@
       "unpublishTip": "Hide this surface from the public /gallery",
       "published": "Live",
       "draft": "Draft",
-      "saveFirst": "Save the surface first, then publish."
+      "saveFirst": "Save the surface first, then publish.",
+      "featuredLabel": "Feature on the Home page",
+      "displayMode": "Home display mode",
+      "modeStatic": "Static (frozen, gentle flow)",
+      "modeAnimated": "Animated (rotates + breathes)"
     }
   }
 }

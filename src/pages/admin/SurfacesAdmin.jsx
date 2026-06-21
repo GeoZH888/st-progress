@@ -20,7 +20,9 @@ function blank() {
     equation: '',
     x_expr: 'sin(u)*cos(v)', y_expr: 'sin(u)*sin(v)', z_expr: 'cos(u)',
     sort_order: 100,
-    published: false
+    published: false,
+    featured: false,
+    display_mode: 'animated'
   }
 }
 
@@ -78,7 +80,9 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
         y_expr: form.y_expr,
         z_expr: form.z_expr,
         sort_order: form.sort_order ?? 100,
-        published: !!form.published
+        published: !!form.published,
+        featured: !!form.featured,
+        display_mode: form.display_mode === 'static' ? 'static' : 'animated'
       }
       if (form.id) payload.id = form.id
       const saved = await upsertSharedSurface(payload)
@@ -158,6 +162,27 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
         <input type="text" value={form.equation || ''} onChange={(e) => patch({ equation: e.target.value })}
           placeholder="x = \sin u \cos v,\; y = \sin u \sin v,\; z = \cos u" />
       </label>
+
+      <div className="admin-field-grid">
+        <label className="admin-field" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="checkbox"
+            checked={!!form.featured}
+            onChange={(e) => patch({ featured: e.target.checked })}
+            style={{ width: 'auto', margin: 0 }}
+          />
+          <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: '0.92rem', color: 'var(--admin-ink)' }}>
+            {t('admin.surfaces.featuredLabel')}
+          </span>
+        </label>
+        <label className="admin-field">
+          <span>{t('admin.surfaces.displayMode')}</span>
+          <select value={form.display_mode || 'animated'} onChange={(e) => patch({ display_mode: e.target.value })}>
+            <option value="animated">{t('admin.surfaces.modeAnimated')}</option>
+            <option value="static">{t('admin.surfaces.modeStatic')}</option>
+          </select>
+        </label>
+      </div>
 
       <div className="admin-field-grid">
         <label className="admin-field">

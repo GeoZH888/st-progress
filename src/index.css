@@ -413,3 +413,51 @@ button {
   flex-direction: column;
   gap: 0.75rem;
 }
+
+/* ---------- Home: featured 3D gallery cards ---------- */
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 0.5rem 0 1rem;
+}
+.featured-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.featured-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+}
+.featured-viewport {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #1c1814;
+  position: relative;
+}
+.featured-viewport canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.featured-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #6e6557;
+  font-size: 0.9rem;
+}
+.featured-name {
+  padding: 0.6rem 0.9rem;
+  font-weight: 500;
+  border-top: 1px solid var(--surface-border);
+}

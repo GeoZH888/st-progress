@@ -15,6 +15,7 @@
     "title": "Le Tappe del Progresso Umano",
     "subtitle": "Dai campi di grano dell'antichità a CRISPR — esplora le scoperte, le invenzioni e le istituzioni che hanno fatto progredire l'umanità in ogni epoca, in ogni dominio e in ogni angolo del mondo.",
     "browseDomain": "Esplora un dominio",
+    "fromGallery": "Dalla Galleria 3D",
     "exploreBy": "Oppure scegli un modo di esplorare",
     "modes": {
       "timeline": {
@@ -322,7 +323,11 @@
       "unpublishTip": "Nascondi questa superficie dalla /gallery pubblica",
       "published": "Pubblicata",
       "draft": "Bozza",
-      "saveFirst": "Salva prima la superficie, poi pubblica."
+      "saveFirst": "Salva prima la superficie, poi pubblica.",
+      "featuredLabel": "In evidenza nella Home",
+      "displayMode": "Modalità Home",
+      "modeStatic": "Statica (ferma, lieve flusso)",
+      "modeAnimated": "Animata (ruota + respira)"
     }
   }
 }

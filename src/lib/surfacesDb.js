@@ -17,6 +17,20 @@ export async function fetchSharedSurfaces() {
   return data || []
 }
 
+// Only the rows the super-admin has marked as featured (and that are
+// also published — anon RLS would filter drafts anyway, but be explicit).
+export async function fetchFeaturedSurfaces(limit = 4) {
+  const { data, error } = await supabase
+    .from('stp_surfaces')
+    .select('*')
+    .eq('featured', true)
+    .eq('published', true)
+    .order('sort_order', { ascending: true })
+    .limit(limit)
+  if (error) throw error
+  return data || []
+}
+
 export async function upsertSharedSurface(row) {
   const isUpdate = Boolean(row.id)
   const q = isUpdate
