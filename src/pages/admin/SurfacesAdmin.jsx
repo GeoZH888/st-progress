@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { fetchSharedSurfaces, upsertSharedSurface, deleteSharedSurface } from '../../lib/surfacesDb'
+import {
+  fetchSharedSurfaces, upsertSharedSurface, deleteSharedSurface,
+  sharedRowToSurface
+} from '../../lib/surfacesDb'
 import { compileExpr } from '../../lib/customSurfaces'
 import { CATEGORIES } from '../../lib/categories'
 import TrilingualField from '../../components/TrilingualField'
+
+// Lazy: don't pull three.js into the admin bundle until the user actually
+// expands a surface row.
+const SurfaceViewer = lazy(() => import('../../components/SurfaceViewer'))
 
 function blank() {
   return {
@@ -12,8 +19,27 @@ function blank() {
     name_en: '', name_it: '', name_zh: '',
     equation: '',
     x_expr: 'sin(u)*cos(v)', y_expr: 'sin(u)*sin(v)', z_expr: 'cos(u)',
-    sort_order: 100
+    sort_order: 100,
+    published: false
   }
+}
+
+// Compile + render a surface row inside the admin editor so the super-admin
+// can see how it looks before clicking Publish.
+function SurfacePreview({ row }) {
+  const compiled = useMemo(() => {
+    try { return sharedRowToSurface(row) } catch { return null }
+  }, [row])
+  if (!compiled) {
+    return <div className="admin-error" style={{ marginTop: '0.5rem' }}>Cannot preview — fix the expressions above and re-save.</div>
+  }
+  return (
+    <div style={{ width: '100%', aspectRatio: '4 / 3', maxHeight: 380, background: '#1c1814', borderRadius: 10, overflow: 'hidden', marginTop: '0.6rem' }}>
+      <Suspense fallback={<div style={{ color: '#888', padding: '1rem' }}>loading 3D…</div>}>
+        <SurfaceViewer surface={compiled} renderMode="solid" motion={0.3} />
+      </Suspense>
+    </div>
+  )
 }
 
 function SurfaceEditor({ initial, onSave, onDelete, onClose }) {
@@ -51,10 +77,36 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
         x_expr: form.x_expr,
         y_expr: form.y_expr,
         z_expr: form.z_expr,
-        sort_order: form.sort_order ?? 100
+        sort_order: form.sort_order ?? 100,
+        published: !!form.published
       }
       if (form.id) payload.id = form.id
       const saved = await upsertSharedSurface(payload)
+      onSave(saved)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function togglePublish() {
+    if (!form.id) {
+      setError(t('admin.surfaces.saveFirst'))
+      return
+    }
+    setSaving(true); setError(null)
+    try {
+      const saved = await upsertSharedSurface({
+        id: form.id,
+        category: form.category,
+        name_en: form.name_en, name_it: form.name_it, name_zh: form.name_zh,
+        equation: form.equation || null,
+        x_expr: form.x_expr, y_expr: form.y_expr, z_expr: form.z_expr,
+        sort_order: form.sort_order ?? 100,
+        published: !form.published
+      })
+      setForm((f) => ({ ...f, published: saved.published }))
       onSave(saved)
     } catch (e) {
       setError(e.message)
@@ -123,11 +175,24 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
       </div>
       <p className="admin-sub">{t('admin.surfaces.hint')}</p>
 
+      <SurfacePreview row={form} />
+
       {error && <div className="admin-error">{error}</div>}
 
       <div className="admin-row-actions">
         <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose} disabled={saving}>{t('admin.cancel')}</button>
         {form.id && <button type="button" className="admin-btn admin-btn-danger" onClick={handleDelete} disabled={saving}>{t('admin.delete')}</button>}
+        {form.id && (
+          <button
+            type="button"
+            className={`admin-btn ${form.published ? 'admin-btn-ghost' : 'admin-btn-primary'}`}
+            onClick={togglePublish}
+            disabled={saving}
+            title={form.published ? t('admin.surfaces.unpublishTip') : t('admin.surfaces.publishTip')}
+          >
+            {form.published ? `● ${t('admin.surfaces.unpublish')}` : `○ ${t('admin.surfaces.publish')}`}
+          </button>
+        )}
         <button type="button" className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving}>
           {saving ? t('admin.saving') : t('admin.save')}
         </button>
@@ -205,7 +270,11 @@ export default function SurfacesAdmin() {
             <button type="button" className="admin-row-head"
               onClick={() => setExpanded(expanded === s.id ? null : s.id)}>
               <span className="admin-row-title">{s.name_en || s.name_zh || '(untitled)'}</span>
-              <span className="admin-row-meta">{s.category} · #{s.sort_order ?? 100}</span>
+              <span className="admin-row-meta">
+                {s.category} · #{s.sort_order ?? 100} · {s.published
+                  ? <span style={{ color: '#18794e' }}>● {t('admin.surfaces.published')}</span>
+                  : <span style={{ color: '#b53620' }}>○ {t('admin.surfaces.draft')}</span>}
+              </span>
             </button>
             {expanded === s.id && (
               <SurfaceEditor initial={s} onSave={handleSave} onDelete={handleDelete} onClose={() => setExpanded(null)} />

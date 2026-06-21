@@ -315,7 +315,14 @@
       "equation": "LaTeX 公式（可选）",
       "sort": "排序号",
       "askLeo": "让莱昂纳多给个公式",
-      "hint": "u 和 v 取值在 [0, 2π]。可用函数：sin、cos、sinh、cosh、sqrt、exp、log、pow、abs、PI、E、TAU。无法编译的表达式将被拒绝保存。"
+      "hint": "u 和 v 取值在 [0, 2π]。可用函数：sin、cos、sinh、cosh、sqrt、exp、log、pow、abs、PI、E、TAU。无法编译的表达式将被拒绝保存。",
+      "publish": "发布",
+      "unpublish": "下架",
+      "publishTip": "让该曲面对公开 /gallery 可见",
+      "unpublishTip": "在公开 /gallery 中隐藏该曲面",
+      "published": "已发布",
+      "draft": "草稿",
+      "saveFirst": "请先保存曲面，再发布。"
     }
   }
 }

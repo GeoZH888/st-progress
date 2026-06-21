@@ -315,7 +315,14 @@
       "equation": "Equazione LaTeX (opzionale)",
       "sort": "Ordine",
       "askLeo": "Chiedi a Leonardo una formula",
-      "hint": "u e v sono in [0, 2π]. Funzioni ammesse: sin, cos, sinh, cosh, sqrt, exp, log, pow, abs, PI, E, TAU. Espressioni che non compilano non saranno salvate."
+      "hint": "u e v sono in [0, 2π]. Funzioni ammesse: sin, cos, sinh, cosh, sqrt, exp, log, pow, abs, PI, E, TAU. Espressioni che non compilano non saranno salvate.",
+      "publish": "Pubblica",
+      "unpublish": "Ritira",
+      "publishTip": "Mostra questa superficie nella /gallery pubblica",
+      "unpublishTip": "Nascondi questa superficie dalla /gallery pubblica",
+      "published": "Pubblicata",
+      "draft": "Bozza",
+      "saveFirst": "Salva prima la superficie, poi pubblica."
     }
   }
 }

@@ -315,7 +315,14 @@
       "equation": "LaTeX equation (optional)",
       "sort": "Sort #",
       "askLeo": "Ask Leonardo for a formula",
-      "hint": "u and v come in [0, 2π]. Allowed: sin, cos, sinh, cosh, sqrt, exp, log, pow, abs, PI, E, TAU. Save will refuse expressions that don't compile."
+      "hint": "u and v come in [0, 2π]. Allowed: sin, cos, sinh, cosh, sqrt, exp, log, pow, abs, PI, E, TAU. Save will refuse expressions that don't compile.",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "publishTip": "Make this surface visible on the public /gallery",
+      "unpublishTip": "Hide this surface from the public /gallery",
+      "published": "Live",
+      "draft": "Draft",
+      "saveFirst": "Save the surface first, then publish."
     }
   }
 }
