@@ -327,7 +327,10 @@
       "featuredLabel": "Feature on the Home page",
       "displayMode": "Home display mode",
       "modeStatic": "Static (frozen, gentle flow)",
-      "modeAnimated": "Animated (rotates + breathes)"
+      "modeAnimated": "Animated (rotates + breathes)",
+      "codeMode": "Code mode (multi-line JS body)",
+      "codeLabel": "Source — assign x, y, z (u, v ∈ [0, 2π])",
+      "codeHint": "Multi-line JS body — declare locals, use sin/cos/etc., assign x, y, z. Whitelisted scope; disallowed: window, document, fetch, import, eval, globalThis, self."
     }
   }
 }

@@ -327,7 +327,10 @@
       "featuredLabel": "In evidenza nella Home",
       "displayMode": "Modalità Home",
       "modeStatic": "Statica (ferma, lieve flusso)",
-      "modeAnimated": "Animata (ruota + respira)"
+      "modeAnimated": "Animata (ruota + respira)",
+      "codeMode": "Modalità codice (corpo JS multi-riga)",
+      "codeLabel": "Codice sorgente — assegna x, y, z (u, v ∈ [0, 2π])",
+      "codeHint": "Corpo JS multi-riga — dichiara locali, usa sin/cos ecc., assegna x, y, z. Scope ristretto: vietati window, document, fetch, import, eval, globalThis, self."
     }
   }
 }

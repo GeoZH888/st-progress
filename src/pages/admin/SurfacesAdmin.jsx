@@ -4,7 +4,7 @@ import {
   fetchSharedSurfaces, upsertSharedSurface, deleteSharedSurface,
   sharedRowToSurface
 } from '../../lib/surfacesDb'
-import { compileExpr } from '../../lib/customSurfaces'
+import { compileExpr, compileSource } from '../../lib/customSurfaces'
 import { CATEGORIES } from '../../lib/categories'
 import TrilingualField from '../../components/TrilingualField'
 
@@ -19,12 +19,23 @@ function blank() {
     name_en: '', name_it: '', name_zh: '',
     equation: '',
     x_expr: 'sin(u)*cos(v)', y_expr: 'sin(u)*sin(v)', z_expr: 'cos(u)',
+    source_code: '',
     sort_order: 100,
     published: false,
     featured: false,
     display_mode: 'animated'
   }
 }
+
+const STARTER_SOURCE = `// u, v ∈ [0, 2π].  Allowed: sin cos tan sinh cosh tanh sqrt cbrt
+// abs exp log pow min max floor ceil PI E TAU
+// Assign x, y, z below; intermediate locals are fine.
+const R = 1.5, r = 0.4
+const twist = sin(3 * u)
+x = (R + r * cos(v) + 0.18 * twist) * cos(u)
+y = (R + r * cos(v) + 0.18 * twist) * sin(u)
+z = r * sin(v) + 0.18 * twist
+`
 
 // Compile + render a surface row inside the admin editor so the super-admin
 // can see how it looks before clicking Publish.
@@ -64,14 +75,20 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
     window.dispatchEvent(new CustomEvent('leonardo-open', { detail: { prompt } }))
   }
 
+  const useCode = (form.source_code || '').trim().length > 0
+
   async function handleSave() {
     setSaving(true); setError(null)
     try {
       // Validate compiles BEFORE saving so an admin doesn't ship a broken
       // surface to the public.
-      compileExpr(form.x_expr)
-      compileExpr(form.y_expr)
-      compileExpr(form.z_expr)
+      if (useCode) {
+        compileSource(form.source_code)
+      } else {
+        compileExpr(form.x_expr)
+        compileExpr(form.y_expr)
+        compileExpr(form.z_expr)
+      }
       const payload = {
         category: form.category,
         name_en: form.name_en, name_it: form.name_it, name_zh: form.name_zh,
@@ -79,6 +96,7 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
         x_expr: form.x_expr,
         y_expr: form.y_expr,
         z_expr: form.z_expr,
+        source_code: useCode ? form.source_code : null,
         sort_order: form.sort_order ?? 100,
         published: !!form.published,
         featured: !!form.featured,
@@ -184,21 +202,54 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
         </label>
       </div>
 
-      <div className="admin-field-grid">
-        <label className="admin-field">
-          <span>x(u, v)</span>
-          <input type="text" value={form.x_expr} onChange={(e) => patch({ x_expr: e.target.value })} />
-        </label>
-        <label className="admin-field">
-          <span>y(u, v)</span>
-          <input type="text" value={form.y_expr} onChange={(e) => patch({ y_expr: e.target.value })} />
-        </label>
-        <label className="admin-field">
-          <span>z(u, v)</span>
-          <input type="text" value={form.z_expr} onChange={(e) => patch({ z_expr: e.target.value })} />
+      <div className="admin-field-grid" style={{ marginBottom: '0.4rem' }}>
+        <label className="admin-field" style={{ gridColumn: '1 / -1', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="checkbox"
+            checked={useCode}
+            onChange={(e) => patch({ source_code: e.target.checked ? (form.source_code || STARTER_SOURCE) : '' })}
+            style={{ width: 'auto', margin: 0 }}
+          />
+          <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: '0.92rem', color: 'var(--admin-ink)' }}>
+            {t('admin.surfaces.codeMode')}
+          </span>
         </label>
       </div>
-      <p className="admin-sub">{t('admin.surfaces.hint')}</p>
+
+      {useCode ? (
+        <label className="admin-field">
+          <span>{t('admin.surfaces.codeLabel')}</span>
+          <textarea
+            value={form.source_code}
+            onChange={(e) => patch({ source_code: e.target.value })}
+            style={{
+              minHeight: 200,
+              fontFamily: "ui-monospace, 'SF Mono', Consolas, monospace",
+              fontSize: '0.88rem',
+              lineHeight: 1.5,
+              whiteSpace: 'pre',
+              tabSize: 2
+            }}
+            spellCheck={false}
+          />
+        </label>
+      ) : (
+        <div className="admin-field-grid">
+          <label className="admin-field">
+            <span>x(u, v)</span>
+            <input type="text" value={form.x_expr} onChange={(e) => patch({ x_expr: e.target.value })} />
+          </label>
+          <label className="admin-field">
+            <span>y(u, v)</span>
+            <input type="text" value={form.y_expr} onChange={(e) => patch({ y_expr: e.target.value })} />
+          </label>
+          <label className="admin-field">
+            <span>z(u, v)</span>
+            <input type="text" value={form.z_expr} onChange={(e) => patch({ z_expr: e.target.value })} />
+          </label>
+        </div>
+      )}
+      <p className="admin-sub">{useCode ? t('admin.surfaces.codeHint') : t('admin.surfaces.hint')}</p>
 
       <SurfacePreview row={form} />
 

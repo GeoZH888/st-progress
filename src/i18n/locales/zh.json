@@ -327,7 +327,10 @@
       "featuredLabel": "在首页推荐显示",
       "displayMode": "首页展示模式",
       "modeStatic": "静态（定格 + 微弱流光）",
-      "modeAnimated": "动态（旋转 + 呼吸）"
+      "modeAnimated": "动态（旋转 + 呼吸）",
+      "codeMode": "代码模式（多行 JS 函数体）",
+      "codeLabel": "源代码 —— 给 x, y, z 赋值（u, v ∈ [0, 2π]）",
+      "codeHint": "多行 JS 函数体——可声明局部变量、使用 sin/cos 等函数，最后给 x、y、z 赋值。沙箱受限：禁止 window、document、fetch、import、eval、globalThis、self。"
     }
   }
 }

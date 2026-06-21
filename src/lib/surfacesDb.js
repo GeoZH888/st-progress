@@ -4,7 +4,7 @@
 // the same whitelisted Math scope as the per-browser localStorage customs.
 
 import { supabase } from './supabase'
-import { compileExpr } from './customSurfaces'
+import { compileExpr, compileSource } from './customSurfaces'
 
 const PI2 = Math.PI * 2
 
@@ -52,9 +52,37 @@ export async function deleteSharedSurface(id) {
  * caller can skip broken entries instead of crashing the gallery.
  */
 export function sharedRowToSurface(row) {
-  const xFn = compileExpr(row.x_expr)
-  const yFn = compileExpr(row.y_expr)
-  const zFn = compileExpr(row.z_expr)
+  // Code mode wins when source_code is non-empty; otherwise fall back to
+  // the three single-line expressions.
+  const useSource = typeof row.source_code === 'string' && row.source_code.trim().length > 0
+
+  let sampler
+  if (useSource) {
+    const fn = compileSource(row.source_code)
+    sampler = (u, v, target) => {
+      const r = fn(u * PI2, v * PI2)
+      const [x, y, z] = r
+      target.set(
+        Number.isFinite(x) ? x : 0,
+        Number.isFinite(z) ? z : 0,
+        Number.isFinite(y) ? y : 0
+      )
+    }
+  } else {
+    const xFn = compileExpr(row.x_expr)
+    const yFn = compileExpr(row.y_expr)
+    const zFn = compileExpr(row.z_expr)
+    sampler = (u, v, target) => {
+      const U = u * PI2
+      const V = v * PI2
+      target.set(
+        Number.isFinite(xFn(U, V)) ? xFn(U, V) : 0,
+        Number.isFinite(zFn(U, V)) ? zFn(U, V) : 0,
+        Number.isFinite(yFn(U, V)) ? yFn(U, V) : 0
+      )
+    }
+  }
+
   return {
     id: `shared-${row.id}`,
     name_en: row.name_en || row.name_zh || row.name_it || '(untitled)',
@@ -66,19 +94,6 @@ export function sharedRowToSurface(row) {
     isShared: true,
     sharedId: row.id,
     sharedCategory: row.category,
-    sampler: (u, v, target) => {
-      const U = u * PI2
-      const V = v * PI2
-      const x = xFn(U, V)
-      const y = yFn(U, V)
-      const z = zFn(U, V)
-      // User exprs are written z-up; three.js is y-up. Same convention as
-      // the localStorage custom surfaces.
-      target.set(
-        Number.isFinite(x) ? x : 0,
-        Number.isFinite(z) ? z : 0,
-        Number.isFinite(y) ? y : 0
-      )
-    }
+    sampler
   }
 }

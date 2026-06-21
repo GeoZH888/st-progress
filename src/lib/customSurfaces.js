@@ -48,6 +48,42 @@ export function compileExpr(expr) {
   }
 }
 
+/**
+ * "Code mode": compile a multi-line JS body that assigns x, y, z (in any
+ * order, with intermediate locals, comments, conditionals, etc.). Returns
+ * a function (u, v) -> [x, y, z] in [number, number, number].
+ *
+ * Example body:
+ *     // u, v ∈ [0, 2π]
+ *     const R = 1.5, r = 0.4
+ *     const tw = sin(3 * u)
+ *     x = (R + r * cos(v) + 0.2 * tw) * cos(u)
+ *     y = (R + r * cos(v) + 0.2 * tw) * sin(u)
+ *     z = r * sin(v) + 0.2 * tw
+ */
+export function compileSource(source) {
+  if (typeof source !== 'string' || !source.trim()) {
+    throw new Error('Empty source')
+  }
+  if (/(\bwindow\b|\bdocument\b|\bfetch\b|\bimport\b|\brequire\b|\bglobalThis\b|\bself\b|\beval\b)/.test(source)) {
+    throw new Error('Source contains a disallowed token')
+  }
+  try {
+    // eslint-disable-next-line no-new-func
+    const fn = new Function(
+      'u', 'v',
+      `${MATH_SCOPE}\nlet x = 0, y = 0, z = 0;\n${source};\nreturn [x, y, z];`
+    )
+    const r = fn(0.5, 0.5)
+    if (!Array.isArray(r) || r.length !== 3 || !r.every((n) => typeof n === 'number')) {
+      throw new Error('Source must assign x, y, z as finite numbers')
+    }
+    return fn
+  } catch (e) {
+    throw new Error(`Compile error: ${e.message}`)
+  }
+}
+
 export function loadCustomSurfaces() {
   try {
     const raw = localStorage.getItem(KEY)
