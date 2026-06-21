@@ -337,7 +337,10 @@
       "modeAnimated": "Animated (rotates + breathes)",
       "codeMode": "Code mode (multi-line JS body)",
       "codeLabel": "Source — assign x, y, z (u, v ∈ [0, 2π])",
-      "codeHint": "Multi-line JS body — declare locals, use sin/cos/etc., assign x, y, z. Whitelisted scope; disallowed: window, document, fetch, import, eval, globalThis, self."
+      "codeHint": "Multi-line JS body — declare locals, use sin/cos/etc., assign x, y, z. Whitelisted scope; disallowed: window, document, fetch, import, eval, globalThis, self.",
+      "saveDefaults": "Save as defaults for this surface",
+      "saveDefaultsTip": "Persist the current preview choices so /gallery visitors see this surface with them",
+      "viewSaved": "Defaults saved — public /gallery will use them on next load."
     }
   }
 }

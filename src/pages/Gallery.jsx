@@ -13,12 +13,24 @@ import './Gallery.css'
 // it run, ask Leonardo about it.
 const SurfaceViewer = lazy(() => import('../components/SurfaceViewer'))
 
-// Locked-in defaults — what admins will see if they don't override per-surface
-// (per-surface admin overrides are a separate enhancement).
+// Fallback defaults — used for built-ins and for shared surfaces whose admin
+// hasn't pinned a view_config yet.
 const VIEW_PALETTE = 'viridis'
 const VIEW_BACKGROUND = 'renaissance'
 const VIEW_MOTION = 0.35
 const VIEW_RENDER = 'solid'
+
+// Pull per-surface overrides if the admin saved any; otherwise hand back
+// the global defaults so built-ins behave identically to old behaviour.
+function viewSettingsFor(surface) {
+  const cfg = surface?.viewConfig || {}
+  return {
+    paletteId:    cfg.palette    || VIEW_PALETTE,
+    backgroundId: cfg.background || VIEW_BACKGROUND,
+    motion:       cfg.motion     != null ? cfg.motion     : VIEW_MOTION,
+    renderMode:   cfg.mode       || VIEW_RENDER
+  }
+}
 
 // Visitor-controllable rotation speed (the only chip group public users see).
 const SPEED_PRESETS = [
@@ -44,7 +56,7 @@ export default function Gallery() {
   const [speedId, setSpeedId] = useState(() => {
     try { return localStorage.getItem(SPEED_LS_KEY) || 'normal' } catch { return 'normal' }
   })
-  const rotationSpeed = (SPEED_PRESETS.find((s) => s.id === speedId) || SPEED_PRESETS[2]).value
+  const visitorSpeed = (SPEED_PRESETS.find((s) => s.id === speedId) || SPEED_PRESETS[2]).value
   useEffect(() => { try { localStorage.setItem(SPEED_LS_KEY, speedId) } catch { /* ignore */ } }, [speedId])
 
   // Shared site-wide surfaces fetched from Supabase (published only, enforced
@@ -70,6 +82,12 @@ export default function Gallery() {
   const surface = allSurfaces.find((s) => s.id === activeId) || allSurfaces[0]
   const lang = i18n.language
   const surfaceName = localizedName(surface, lang)
+  // Per-surface view defaults set by the admin, falling back to the global
+  // VIEW_* constants for built-ins / surfaces with no view_config yet.
+  const view = viewSettingsFor(surface)
+  // Speed is a visitor-controlled setting (separate from admin view_config);
+  // start it from the saved view_config if present, then let the user override.
+  const adminSpeed = surface?.viewConfig?.speed
 
   return (
     <div className="page gallery-page">
@@ -103,11 +121,11 @@ export default function Gallery() {
             <Suspense fallback={<Loading />}>
               <SurfaceViewer
                 surface={surface}
-                renderMode={VIEW_RENDER}
-                paletteId={VIEW_PALETTE}
-                backgroundId={VIEW_BACKGROUND}
-                motion={VIEW_MOTION}
-                rotationSpeed={rotationSpeed}
+                renderMode={view.renderMode}
+                paletteId={view.paletteId}
+                backgroundId={view.backgroundId}
+                motion={view.motion}
+                rotationSpeed={visitorSpeed}
               />
             </Suspense>
             <div

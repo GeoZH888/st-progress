@@ -337,7 +337,10 @@
       "modeAnimated": "动态（旋转 + 呼吸）",
       "codeMode": "代码模式（多行 JS 函数体）",
       "codeLabel": "源代码 —— 给 x, y, z 赋值（u, v ∈ [0, 2π]）",
-      "codeHint": "多行 JS 函数体——可声明局部变量、使用 sin/cos 等函数，最后给 x、y、z 赋值。沙箱受限：禁止 window、document、fetch、import、eval、globalThis、self。"
+      "codeHint": "多行 JS 函数体——可声明局部变量、使用 sin/cos 等函数，最后给 x、y、z 赋值。沙箱受限：禁止 window、document、fetch、import、eval、globalThis、self。",
+      "saveDefaults": "保存为该曲面的默认外观",
+      "saveDefaultsTip": "把当前预览的选择持久化，公开 /gallery 将以此显示该曲面",
+      "viewSaved": "默认外观已保存 —— 公开 /gallery 下次加载将采用。"
     }
   }
 }

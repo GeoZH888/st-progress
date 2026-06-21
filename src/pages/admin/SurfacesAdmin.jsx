@@ -47,21 +47,86 @@ const PREVIEW_MOTIONS = [
   { id: 'off', value: 0 }, { id: 'gentle', value: 0.35 },
   { id: 'lively', value: 0.7 }, { id: 'wild', value: 1.0 }
 ]
+const PREVIEW_SPEEDS = [
+  { id: 'off',    value: 0    },
+  { id: 'slow',   value: 0.4  },
+  { id: 'normal', value: 1.0  },
+  { id: 'fast',   value: 2.2  }
+]
+
+function configFromRow(row) {
+  const c = row?.view_config || {}
+  return {
+    palette: c.palette || 'viridis',
+    background: c.background || 'renaissance',
+    motionId: idForMotion(c.motion),
+    speedId: idForSpeed(c.speed),
+    mode: c.mode || 'solid'
+  }
+}
+function idForMotion(v) {
+  if (v == null) return 'gentle'
+  const m = PREVIEW_MOTIONS.find((x) => Math.abs(x.value - v) < 0.001)
+  return m ? m.id : 'gentle'
+}
+function idForSpeed(v) {
+  if (v == null) return 'normal'
+  const m = PREVIEW_SPEEDS.find((x) => Math.abs(x.value - v) < 0.001)
+  return m ? m.id : 'normal'
+}
 
 // Compile + render a surface row inside the admin editor so the super-admin
 // can see how it looks (with full controls) before clicking Publish.
-function SurfacePreview({ row }) {
+function SurfacePreview({ row, onSavedDefaults }) {
   const { t } = useTranslation()
-  const [renderMode, setRenderMode] = useState('solid')
-  const [paletteId, setPaletteId] = useState('viridis')
-  const [backgroundId, setBackgroundId] = useState('renaissance')
-  const [motionId, setMotionId] = useState('gentle')
+  const initial = useMemo(() => configFromRow(row), [row])
+  const [renderMode, setRenderMode] = useState(initial.mode)
+  const [paletteId, setPaletteId] = useState(initial.palette)
+  const [backgroundId, setBackgroundId] = useState(initial.background)
+  const [motionId, setMotionId] = useState(initial.motionId)
+  const [speedId, setSpeedId] = useState(initial.speedId)
+  const [savingDefaults, setSavingDefaults] = useState(false)
+  const [savedMsg, setSavedMsg] = useState(null)
 
   const compiled = useMemo(() => {
     try { return sharedRowToSurface(row) } catch { return null }
   }, [row])
 
   const motion = PREVIEW_MOTIONS.find((m) => m.id === motionId)?.value ?? 0.35
+  const speed  = PREVIEW_SPEEDS.find((m) => m.id === speedId)?.value  ?? 1.0
+
+  async function saveAsDefault() {
+    if (!row?.id) return
+    setSavingDefaults(true); setSavedMsg(null)
+    try {
+      const saved = await upsertSharedSurface({
+        id: row.id,
+        category: row.category,
+        name_en: row.name_en, name_it: row.name_it, name_zh: row.name_zh,
+        equation: row.equation || null,
+        x_expr: row.x_expr, y_expr: row.y_expr, z_expr: row.z_expr,
+        source_code: row.source_code || null,
+        sort_order: row.sort_order ?? 100,
+        published: !!row.published,
+        featured: !!row.featured,
+        display_mode: row.display_mode || 'animated',
+        view_config: {
+          palette: paletteId,
+          background: backgroundId,
+          motion,
+          speed,
+          mode: renderMode
+        }
+      })
+      setSavedMsg('✓ ' + t('admin.surfaces.viewSaved'))
+      setTimeout(() => setSavedMsg(null), 2500)
+      onSavedDefaults?.(saved)
+    } catch (e) {
+      setSavedMsg('✗ ' + e.message)
+    } finally {
+      setSavingDefaults(false)
+    }
+  }
 
   if (!compiled) {
     return <div className="admin-error" style={{ marginTop: '0.5rem' }}>Cannot preview — fix the expressions above.</div>
@@ -86,6 +151,14 @@ function SurfacePreview({ row }) {
           ))}
         </div>
         <div className="admin-preview-row">
+          <span className="admin-preview-lbl">{t('gallery.speed')}:</span>
+          {PREVIEW_SPEEDS.map((m) => (
+            <button key={m.id} type="button" className={`admin-preview-chip${speedId === m.id ? ' on' : ''}`} onClick={() => setSpeedId(m.id)}>
+              {t(`gallery.speeds.${m.id}`)}
+            </button>
+          ))}
+        </div>
+        <div className="admin-preview-row">
           <span className="admin-preview-lbl">{t('gallery.palette')}:</span>
           <select value={paletteId} onChange={(e) => setPaletteId(e.target.value)} className="admin-preview-select">
             {PREVIEW_PALETTES.map((p) => <option key={p} value={p}>{p}</option>)}
@@ -94,6 +167,18 @@ function SurfacePreview({ row }) {
           <select value={backgroundId} onChange={(e) => setBackgroundId(e.target.value)} className="admin-preview-select">
             {PREVIEW_BGS.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
+        </div>
+        <div className="admin-preview-row" style={{ justifyContent: 'flex-end' }}>
+          {savedMsg && <span className="admin-preview-lbl" style={{ marginRight: 'auto', color: savedMsg.startsWith('✓') ? '#18794e' : '#b53620' }}>{savedMsg}</span>}
+          <button
+            type="button"
+            className="admin-btn admin-btn-primary"
+            onClick={saveAsDefault}
+            disabled={savingDefaults || !row?.id}
+            title={row?.id ? t('admin.surfaces.saveDefaultsTip') : t('admin.surfaces.saveFirst')}
+          >
+            {savingDefaults ? '…' : `★ ${t('admin.surfaces.saveDefaults')}`}
+          </button>
         </div>
       </div>
       <div style={{ width: '100%', aspectRatio: '4 / 3', maxHeight: 420, background: '#1c1814', borderRadius: 10, overflow: 'hidden' }}>
@@ -104,6 +189,7 @@ function SurfacePreview({ row }) {
             paletteId={paletteId}
             backgroundId={backgroundId}
             motion={motion}
+            rotationSpeed={speed}
           />
         </Suspense>
       </div>
@@ -307,7 +393,7 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
       )}
       <p className="admin-sub">{useCode ? t('admin.surfaces.codeHint') : t('admin.surfaces.hint')}</p>
 
-      <SurfacePreview row={form} />
+      <SurfacePreview row={form} onSavedDefaults={(saved) => setForm((f) => ({ ...f, view_config: saved.view_config }))} />
 
       {error && <div className="admin-error">{error}</div>}
 

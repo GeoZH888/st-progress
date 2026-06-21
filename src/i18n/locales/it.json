@@ -337,7 +337,10 @@
       "modeAnimated": "Animata (ruota + respira)",
       "codeMode": "Modalità codice (corpo JS multi-riga)",
       "codeLabel": "Codice sorgente — assegna x, y, z (u, v ∈ [0, 2π])",
-      "codeHint": "Corpo JS multi-riga — dichiara locali, usa sin/cos ecc., assegna x, y, z. Scope ristretto: vietati window, document, fetch, import, eval, globalThis, self."
+      "codeHint": "Corpo JS multi-riga — dichiara locali, usa sin/cos ecc., assegna x, y, z. Scope ristretto: vietati window, document, fetch, import, eval, globalThis, self.",
+      "saveDefaults": "Salva come predefiniti per questa superficie",
+      "saveDefaultsTip": "Rende permanenti le scelte di anteprima — la /gallery pubblica mostrerà questa superficie con esse",
+      "viewSaved": "Predefiniti salvati — la /gallery pubblica li userà al prossimo caricamento."
     }
   }
 }

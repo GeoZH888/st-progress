@@ -94,6 +94,9 @@ export function sharedRowToSurface(row) {
     isShared: true,
     sharedId: row.id,
     sharedCategory: row.category,
+    // Per-surface view defaults the admin saved (palette / background /
+    // motion / speed / mode). Gallery merges with its global fallbacks.
+    viewConfig: row.view_config || null,
     sampler
   }
 }
