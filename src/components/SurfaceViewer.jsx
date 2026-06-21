@@ -108,6 +108,64 @@ function fitGeometry(geometry, targetRadius = 2.0) {
  * Render the same geometry as solid mesh, wireframe overlay, both, or points.
  * Lets us share one geometry between layers (cheap; one draw call per layer).
  */
+/**
+ * Bright sparkle particles that fly along the surface's vertex order.
+ * Each sparkle has a random offset + speed, so the group looks like a swarm
+ * of fireflies tracing the geometry. Additive blending gives a glow effect.
+ *
+ * Lives inside the surface's group so it inherits rotation / motion / sway.
+ */
+function Sparkles({ geometry, count = 28, color = '#fff7c2', size = 0.16 }) {
+  const sparkGeom = useMemo(() => {
+    const positions = new Float32Array(count * 3)
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    return g
+  }, [count])
+
+  const states = useMemo(() => {
+    const s = new Float32Array(count * 2) // [offset, speed] pairs
+    for (let i = 0; i < count; i++) {
+      s[i * 2]     = Math.random()                       // initial phase 0..1
+      s[i * 2 + 1] = 0.025 + Math.random() * 0.07        // speed
+    }
+    return s
+  }, [count])
+
+  useEffect(() => () => sparkGeom.dispose(), [sparkGeom])
+
+  useFrame((state) => {
+    if (!geometry?.attributes?.position) return
+    const surfPos = geometry.attributes.position.array
+    const total = geometry.attributes.position.count
+    if (total < 2) return
+    const sparkPos = sparkGeom.attributes.position.array
+    const time = state.clock.elapsedTime
+    for (let i = 0; i < count; i++) {
+      const t = (states[i * 2] + time * states[i * 2 + 1]) % 1
+      const idx = Math.min(total - 1, Math.floor(t * total))
+      sparkPos[i * 3]     = surfPos[idx * 3]
+      sparkPos[i * 3 + 1] = surfPos[idx * 3 + 1]
+      sparkPos[i * 3 + 2] = surfPos[idx * 3 + 2]
+    }
+    sparkGeom.attributes.position.needsUpdate = true
+  })
+
+  return (
+    <points geometry={sparkGeom}>
+      <pointsMaterial
+        color={color}
+        size={size}
+        sizeAttenuation
+        transparent
+        opacity={0.9}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
+  )
+}
+
 function SurfaceLayers({ geometry, renderMode = 'solid' }) {
   const showSolid = renderMode === 'solid' || renderMode === 'both'
   const showWire = renderMode === 'wireframe' || renderMode === 'both'
@@ -207,6 +265,7 @@ function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, autoRotate 
   return (
     <group ref={groupRef}>
       <SurfaceLayers geometry={geometry} renderMode={renderMode} />
+      <Sparkles geometry={geometry} count={26} />
     </group>
   )
 }
@@ -339,6 +398,7 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0,
   return (
     <group ref={groupRef}>
       <SurfaceLayers geometry={geometry} renderMode={renderMode} />
+      <Sparkles geometry={geometry} count={30} />
     </group>
   )
 }
@@ -350,7 +410,7 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0,
  * (gold → violet) and rotate the whole thing slowly.
  */
 function AttractorMesh({ surface, palette, params, motion = 0, rotationSpeed = 1 }) {
-  const meshRef = useRef()
+  const groupRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { id: palId, rgbStops } = stopsOf(palette)
   const stopsRef = useRef(rgbStops)
@@ -438,9 +498,12 @@ function AttractorMesh({ surface, palette, params, motion = 0, rotationSpeed = 1
   })
 
   return (
-    <line ref={meshRef} geometry={geometry}>
-      <lineBasicMaterial vertexColors transparent opacity={0.95} />
-    </line>
+    <group ref={groupRef}>
+      <line geometry={geometry}>
+        <lineBasicMaterial vertexColors transparent opacity={0.95} />
+      </line>
+      <Sparkles geometry={geometry} count={36} size={0.14} />
+    </group>
   )
 }
 
