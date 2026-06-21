@@ -442,7 +442,7 @@ function AttractorMesh({ surface, palette, params, motion = 0, rotationSpeed = 1
   useEffect(() => () => geometry.dispose(), [geometry])
 
   useFrame((state, delta) => {
-    const g = meshRef.current
+    const g = groupRef.current
     if (!g) return
     const time = state.clock.elapsedTime
     g.rotation.y += delta * AUTO_ROTATE_SPEED * (rotationSpeed ?? 1)
