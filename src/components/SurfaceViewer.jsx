@@ -145,7 +145,7 @@ function SurfaceLayers({ geometry, renderMode = 'solid' }) {
   )
 }
 
-function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, autoRotate = true }) {
+function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, autoRotate = true, rotationSpeed = 1 }) {
   const groupRef = useRef()
   const seed = useMemo(newMotionSeed, [])
 
@@ -174,7 +174,7 @@ function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, autoRotate 
     const g = groupRef.current
     if (!g) return
     const time = state.clock.elapsedTime
-    if (autoRotate) g.rotation.y += delta * AUTO_ROTATE_SPEED
+    if (autoRotate) g.rotation.y += delta * AUTO_ROTATE_SPEED * (rotationSpeed ?? 1)
     applyMotion(g, time, seed, motion, 1)
 
     // Surface flow: gentler than on lines/points so the underlying
@@ -211,7 +211,7 @@ function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, autoRotate 
   )
 }
 
-function ParametricSurfaceMesh({ surface, renderMode, palette, params, motion, autoRotate }) {
+function ParametricSurfaceMesh({ surface, renderMode, palette, params, motion, autoRotate, rotationSpeed }) {
   const { id: palId, rgbStops } = stopsOf(palette)
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
@@ -221,10 +221,10 @@ function ParametricSurfaceMesh({ surface, renderMode, palette, params, motion, a
     applyHeightGradient(g, rgbStops) // initial colours; useFrame overrides
     return g
   }, [surface, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
-  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} autoRotate={autoRotate} />
+  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
 }
 
-function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion, autoRotate }) {
+function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion, autoRotate, rotationSpeed }) {
   const { id: palId, rgbStops } = stopsOf(palette)
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
@@ -233,7 +233,7 @@ function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion, auto
     applyHeightGradient(g, rgbStops)
     return g
   }, [surface, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
-  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} autoRotate={autoRotate} />
+  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
 }
 
 /**
@@ -241,7 +241,7 @@ function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion, auto
  * the position + color attributes every frame in place — no GC pressure even
  * at 60fps with ~25k vertices.
  */
-function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0 }) {
+function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0, rotationSpeed = 1 }) {
   const groupRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { rgbStops } = stopsOf(palette)
@@ -332,7 +332,7 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0 
     geometry.computeBoundingSphere()
     const r = geometry.boundingSphere?.radius || 1
     const baseScale = 2 / r
-    groupRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * 0.7
+    groupRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * (rotationSpeed ?? 1) * 0.7
     applyMotion(groupRef.current, time, seed, motionRef.current, baseScale)
   })
 
@@ -349,7 +349,7 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0 
  * 3·n with sequential (x,y,z) triples; we color by progression along the path
  * (gold → violet) and rotate the whole thing slowly.
  */
-function AttractorMesh({ surface, palette, params, motion = 0 }) {
+function AttractorMesh({ surface, palette, params, motion = 0, rotationSpeed = 1 }) {
   const meshRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { id: palId, rgbStops } = stopsOf(palette)
@@ -385,7 +385,7 @@ function AttractorMesh({ surface, palette, params, motion = 0 }) {
     const g = meshRef.current
     if (!g) return
     const time = state.clock.elapsedTime
-    g.rotation.y += delta * AUTO_ROTATE_SPEED
+    g.rotation.y += delta * AUTO_ROTATE_SPEED * (rotationSpeed ?? 1)
     applyMotion(g, time, seed, motion, 1)
 
     // Flow effect on attractor lines, now in three layers:
@@ -450,7 +450,7 @@ function AttractorMesh({ surface, palette, params, motion = 0 }) {
  * triples. If `surface.animated` is truthy, a sinusoidal draw-range
  * oscillates 0..N..0 so the spiral visibly blooms.
  */
-function PointsMesh({ surface, palette, params, motion = 0 }) {
+function PointsMesh({ surface, palette, params, motion = 0, rotationSpeed = 1 }) {
   const meshRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { id: palId, rgbStops } = stopsOf(palette)
@@ -490,7 +490,7 @@ function PointsMesh({ surface, palette, params, motion = 0 }) {
   useFrame((state, delta) => {
     if (!meshRef.current) return
     const time = state.clock.elapsedTime
-    meshRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * 0.6
+    meshRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * (rotationSpeed ?? 1) * 0.6
     applyMotion(meshRef.current, time, seed, motion, 1)
 
     // Flow effect on point clouds — four layers stacked:
@@ -565,12 +565,12 @@ function PointsMesh({ surface, palette, params, motion = 0 }) {
   )
 }
 
-function Surface({ surface, renderMode, palette, params, motion, autoRotate = true }) {
-  if (surface.kind === 'morph')     return <MorphingSurfaceMesh   surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} />
-  if (surface.kind === 'builtin')   return <BuiltinSurfaceMesh    surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} />
-  if (surface.kind === 'attractor') return <AttractorMesh         surface={surface}                          palette={palette} params={params} motion={motion} />
-  if (surface.kind === 'points')    return <PointsMesh            surface={surface}                          palette={palette} params={params} motion={motion} />
-  return <ParametricSurfaceMesh surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} />
+function Surface({ surface, renderMode, palette, params, motion, autoRotate = true, rotationSpeed = 1 }) {
+  if (surface.kind === 'morph')     return <MorphingSurfaceMesh   surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} rotationSpeed={rotationSpeed} />
+  if (surface.kind === 'builtin')   return <BuiltinSurfaceMesh    surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
+  if (surface.kind === 'attractor') return <AttractorMesh         surface={surface}                          palette={palette} params={params} motion={motion} rotationSpeed={rotationSpeed} />
+  if (surface.kind === 'points')    return <PointsMesh            surface={surface}                          palette={palette} params={params} motion={motion} rotationSpeed={rotationSpeed} />
+  return <ParametricSurfaceMesh surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
 }
 
 // Which surface kinds respect the render-mode picker (solid / wireframe / both / points)?
@@ -587,6 +587,7 @@ export default function SurfaceViewer({
   params = null,
   motion = 0,
   autoRotate = true,
+  rotationSpeed = 1,
   interactive = true
 }) {
   const palette = paletteById(paletteId)
@@ -607,7 +608,7 @@ export default function SurfaceViewer({
       <ambientLight intensity={ambient} />
       <directionalLight position={[5, 6, 4]} intensity={1.1} />
       <directionalLight position={[-5, -3, -5]} intensity={0.45} color={bg.accent} />
-      <Surface surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} />
+      <Surface surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
       {interactive && <OrbitControls enablePan={false} minDistance={2.6} maxDistance={11} />}
     </Canvas>
   )

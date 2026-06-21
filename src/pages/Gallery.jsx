@@ -20,6 +20,15 @@ const VIEW_BACKGROUND = 'renaissance'
 const VIEW_MOTION = 0.35
 const VIEW_RENDER = 'solid'
 
+// Visitor-controllable rotation speed (the only chip group public users see).
+const SPEED_PRESETS = [
+  { id: 'off',    value: 0,    glyph: '⏸' },
+  { id: 'slow',   value: 0.4,  glyph: '◐' },
+  { id: 'normal', value: 1.0,  glyph: '●' },
+  { id: 'fast',   value: 2.2,  glyph: '⏩' }
+]
+const SPEED_LS_KEY = 'stp-gallery-rspeed'
+
 function Equation({ latex }) {
   const html = katex.renderToString(latex, { displayMode: true, throwOnError: false })
   return <div className="gallery-equation" dangerouslySetInnerHTML={{ __html: html }} />
@@ -32,6 +41,11 @@ function askLeonardo(prompt) {
 export default function Gallery() {
   const { t, i18n } = useTranslation()
   const [activeId, setActiveId] = useState(DEFAULT_SURFACE_ID)
+  const [speedId, setSpeedId] = useState(() => {
+    try { return localStorage.getItem(SPEED_LS_KEY) || 'normal' } catch { return 'normal' }
+  })
+  const rotationSpeed = (SPEED_PRESETS.find((s) => s.id === speedId) || SPEED_PRESETS[2]).value
+  useEffect(() => { try { localStorage.setItem(SPEED_LS_KEY, speedId) } catch { /* ignore */ } }, [speedId])
 
   // Shared site-wide surfaces fetched from Supabase (published only, enforced
   // by RLS so we don't have to filter client-side).
@@ -93,8 +107,28 @@ export default function Gallery() {
                 paletteId={VIEW_PALETTE}
                 backgroundId={VIEW_BACKGROUND}
                 motion={VIEW_MOTION}
+                rotationSpeed={rotationSpeed}
               />
             </Suspense>
+            <div
+              className="gallery-speed-overlay"
+              role="group"
+              aria-label={t('gallery.speed')}
+            >
+              {SPEED_PRESETS.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`gallery-speed-chip${speedId === s.id ? ' on' : ''}`}
+                  onClick={() => setSpeedId(s.id)}
+                  title={t(`gallery.speeds.${s.id}`)}
+                  aria-label={t(`gallery.speeds.${s.id}`)}
+                  aria-pressed={speedId === s.id}
+                >
+                  {s.glyph}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

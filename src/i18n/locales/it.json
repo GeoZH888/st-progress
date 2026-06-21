@@ -148,6 +148,13 @@
     },
     "askLeo": "Chiedi a Leonardo",
     "askLeoTooltip": "Apri la chat con una domanda su questa superficie",
+    "speed": "Velocità rotazione",
+    "speeds": {
+      "off": "Pausa",
+      "slow": "Lento",
+      "normal": "Normale",
+      "fast": "Veloce"
+    },
     "askLeoPrompt": "Parlami di {{name}} — la sua storia, chi l'ha studiata per primo e dove appare in natura o in altri rami della matematica.",
     "custom": {
       "add": "Aggiungi una tua superficie",

@@ -148,6 +148,13 @@
     },
     "askLeo": "Ask Leonardo",
     "askLeoTooltip": "Open the chat with a question about this surface",
+    "speed": "Rotation speed",
+    "speeds": {
+      "off": "Pause",
+      "slow": "Slow",
+      "normal": "Normal",
+      "fast": "Fast"
+    },
     "askLeoPrompt": "Tell me about {{name}} — its history, who first studied it, and where it appears in nature or other parts of mathematics.",
     "custom": {
       "add": "Add your own surface",
