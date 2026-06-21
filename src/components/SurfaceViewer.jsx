@@ -356,6 +356,9 @@ function AttractorMesh({ surface, palette, params, motion = 0 }) {
   const stopsRef = useRef(rgbStops)
   useEffect(() => { stopsRef.current = rgbStops }, [rgbStops])
   const paramsKey = JSON.stringify(params || {})
+  // Cache the original positions so the per-frame undulation can offset
+  // *from rest* rather than drift cumulatively.
+  const basePosRef = useRef(null)
   const geometry = useMemo(() => {
     const flat = surface.integrate(surface.points || 6000, params)
     const positions = flat instanceof Float32Array ? flat : new Float32Array(flat)
@@ -372,6 +375,7 @@ function AttractorMesh({ surface, palette, params, motion = 0 }) {
     g.setAttribute('position', new THREE.BufferAttribute(positions, 3))
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3))
     fitGeometry(g)
+    basePosRef.current = new Float32Array(g.attributes.position.array)
     return g
   }, [surface, palId, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -384,38 +388,53 @@ function AttractorMesh({ surface, palette, params, motion = 0 }) {
     g.rotation.y += delta * AUTO_ROTATE_SPEED
     applyMotion(g, time, seed, motion, 1)
 
-    // Flow effect on attractor lines:
-    //   1) The palette pattern shifts along the line (a river of colour).
-    //   2) A bright "comet" peak chases along faster, white-tinted at its
-    //      centre, fading to the base colour within a narrow window.
-    // Combined: clearly visible motion even with subtle palettes.
+    // Flow effect on attractor lines, now in three layers:
+    //   1) Palette pattern shifts along the line (river of colour)
+    //   2) Two bright "comet" peaks chase along at different speeds
+    //   3) Per-vertex sinusoidal wobble in 3D — a wave that visibly
+    //      ripples along the curve, making the whole attractor feel alive
     const col = geometry.attributes.color.array
+    const pos = geometry.attributes.position.array
+    const base = basePosRef.current
     const count = geometry.attributes.position.count
     const stops = stopsRef.current
     const colorOffset = (time * 0.35) % 1
-    const headPos = (time * 0.55) % 1    // fast comet
-    const head2 = (time * 0.32 + 0.5) % 1 // a second, slower head offset by half a cycle
+    const headPos = (time * 0.55) % 1
+    const head2 = (time * 0.32 + 0.5) % 1
     const denom = Math.max(1, count - 1)
+    // Two undulation modes (different freq + axis) give the curve a sense
+    // of "swimming" rather than just being a stiff line.
+    const waveAmpY = 0.06, waveAmpX = 0.04
+    const waveTimeY = time * 1.6
+    const waveTimeX = time * 1.1
     for (let i = 0; i < count; i++) {
-      // Base colour: shifted palette gradient.
+      // ----- COLOUR -----
       let p = (i / denom) - colorOffset
       p = p - Math.floor(p)
       const c = rgbAtT(stops, p)
 
-      // Two moving Gaussian peaks; combined boost ∈ [0, ~1].
-      const pos = i / denom
-      let d1 = Math.abs(pos - headPos); d1 = Math.min(d1, 1 - d1)
-      let d2 = Math.abs(pos - head2);   d2 = Math.min(d2, 1 - d2)
+      const pi = i / denom
+      let d1 = Math.abs(pi - headPos); d1 = Math.min(d1, 1 - d1)
+      let d2 = Math.abs(pi - head2);   d2 = Math.min(d2, 1 - d2)
       const boost = Math.exp(-d1 * d1 * 220) + 0.6 * Math.exp(-d2 * d2 * 220)
 
-      // Dim the steady portion to 0.55× so the peak really pops, then
-      // brighten + desaturate toward white at the peaks.
       const k = 0.55 + 0.45 * Math.min(1, boost)
       col[i * 3]     = Math.min(1, c.r * k + boost * (1 - c.r) * 0.55)
       col[i * 3 + 1] = Math.min(1, c.g * k + boost * (1 - c.g) * 0.55)
       col[i * 3 + 2] = Math.min(1, c.b * k + boost * (1 - c.b) * 0.55)
+
+      // ----- UNDULATION -----  offset *from rest* so it doesn't drift.
+      if (base) {
+        const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2
+        const phY = i * 0.28 + waveTimeY
+        const phX = i * 0.18 + waveTimeX
+        pos[ix] = base[ix] + Math.cos(phX) * waveAmpX
+        pos[iy] = base[iy] + Math.sin(phY) * waveAmpY
+        pos[iz] = base[iz] + Math.sin(phX * 0.7) * waveAmpX
+      }
     }
     geometry.attributes.color.needsUpdate = true
+    if (base) geometry.attributes.position.needsUpdate = true
   })
 
   return (
@@ -438,6 +457,10 @@ function PointsMesh({ surface, palette, params, motion = 0 }) {
   const stopsRef = useRef(rgbStops)
   useEffect(() => { stopsRef.current = rgbStops }, [rgbStops])
   const paramsKey = JSON.stringify(params || {})
+  // Per-point random phase + base positions so each dot can twinkle and
+  // drift slightly without losing its Vogel spiral position.
+  const basePosRef = useRef(null)
+  const phasesRef = useRef(null)
   const geometry = useMemo(() => {
     const flat = surface.generate(surface.pointCount || 2000, params)
     const positions = flat instanceof Float32Array ? flat : new Float32Array(flat)
@@ -455,6 +478,10 @@ function PointsMesh({ surface, palette, params, motion = 0 }) {
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3))
     fitGeometry(g)
     if (surface.animated) g.setDrawRange(0, 0)
+    basePosRef.current = new Float32Array(g.attributes.position.array)
+    const phases = new Float32Array(count)
+    for (let i = 0; i < count; i++) phases[i] = Math.random() * Math.PI * 2
+    phasesRef.current = phases
     return g
   }, [surface, palId, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -466,35 +493,55 @@ function PointsMesh({ surface, palette, params, motion = 0 }) {
     meshRef.current.rotation.y += delta * AUTO_ROTATE_SPEED * 0.6
     applyMotion(meshRef.current, time, seed, motion, 1)
 
-    // Flow effect on point clouds:
-    //   1) Palette shifts radially through the cloud (river of colour).
-    //   2) A radial brightness ring expands outward from the centre,
-    //      sweeping across the dots like a ripple in a pond.
-    // For Vogel specifically, this combines with the bloom (drawRange).
+    // Flow effect on point clouds — four layers stacked:
+    //   1) Palette shifts radially through the cloud (river of colour)
+    //   2) Two ripple rings expand outward from the centre
+    //   3) Per-dot random-phase twinkle modulates brightness
+    //   4) Per-dot tiny XY drift — each dot orbits a fraction of a unit
+    //      around its base position, with random phase, so the spiral
+    //      visibly shimmers rather than sitting frozen.
     const col = geometry.attributes.color.array
+    const pos = geometry.attributes.position.array
+    const base = basePosRef.current
+    const phases = phasesRef.current
     const count = geometry.attributes.position.count
     const stops = stopsRef.current
     const colorOffset = (time * 0.22) % 1
-    const ringPos = (time * 0.45) % 1.3 // overshoots so the ring fades off-cloud
+    const ringPos = (time * 0.45) % 1.3
     const ring2 = ((time * 0.3) + 0.6) % 1.3
     const denom = Math.max(1, count - 1)
+    const driftAmp = 0.025
+    const driftT  = time * 2.0
+    const twinkleT = time * 3.2
     for (let i = 0; i < count; i++) {
       let p = (i / denom) - colorOffset
       p = p - Math.floor(p)
       const c = rgbAtT(stops, p)
 
-      // Index ≈ radial position for radial-by-index spirals like Vogel.
       const rPos = i / denom
       const d1 = Math.abs(rPos - ringPos)
       const d2 = Math.abs(rPos - ring2)
-      const boost = Math.exp(-d1 * d1 * 180) + 0.7 * Math.exp(-d2 * d2 * 180)
+      const ringBoost = Math.exp(-d1 * d1 * 180) + 0.7 * Math.exp(-d2 * d2 * 180)
 
+      const phase = phases ? phases[i] : (i * 0.31)
+      const twinkle = 0.7 + 0.3 * Math.sin(twinkleT + phase * 1.7)
+
+      const boost = Math.min(1.4, ringBoost + twinkle * 0.25)
       const k = 0.55 + 0.45 * Math.min(1, boost)
       col[i * 3]     = Math.min(1, c.r * k + boost * (1 - c.r) * 0.55)
       col[i * 3 + 1] = Math.min(1, c.g * k + boost * (1 - c.g) * 0.55)
       col[i * 3 + 2] = Math.min(1, c.b * k + boost * (1 - c.b) * 0.55)
+
+      if (base) {
+        const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2
+        const ph = driftT + phase
+        pos[ix] = base[ix] + Math.cos(ph) * driftAmp
+        pos[iy] = base[iy] + Math.sin(ph * 1.3) * driftAmp * 0.6
+        pos[iz] = base[iz] + Math.sin(ph) * driftAmp
+      }
     }
     geometry.attributes.color.needsUpdate = true
+    if (base) geometry.attributes.position.needsUpdate = true
 
     if (surface.animated) {
       const total = geometry.attributes.position.count
