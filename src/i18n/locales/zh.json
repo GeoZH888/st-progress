@@ -155,6 +155,15 @@
       "normal": "正常",
       "fast": "快"
     },
+    "motionPreset": "动作",
+    "motionPresets": {
+      "pause": "暂停",
+      "calm":  "安静",
+      "swim":  "游动",
+      "fly":   "飞行",
+      "orbit": "环绕",
+      "wild":  "狂放"
+    },
     "askLeoPrompt": "给我讲讲「{{name}}」——它的历史、谁最早研究它，以及它在自然界或数学的其他角落如何出现。",
     "custom": {
       "add": "添加你自己的曲面",

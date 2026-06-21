@@ -155,6 +155,15 @@
       "normal": "Normale",
       "fast": "Veloce"
     },
+    "motionPreset": "Movimento",
+    "motionPresets": {
+      "pause": "Pausa",
+      "calm":  "Calmo",
+      "swim":  "Nuota",
+      "fly":   "Vola",
+      "orbit": "Orbita",
+      "wild":  "Selvaggio"
+    },
     "askLeoPrompt": "Parlami di {{name}} — la sua storia, chi l'ha studiata per primo e dove appare in natura o in altri rami della matematica.",
     "custom": {
       "add": "Aggiungi una tua superficie",

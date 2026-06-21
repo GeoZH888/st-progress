@@ -32,14 +32,17 @@ function viewSettingsFor(surface) {
   }
 }
 
-// Visitor-controllable rotation speed (the only chip group public users see).
-const SPEED_PRESETS = [
-  { id: 'off',    value: 0,    glyph: '⏸' },
-  { id: 'slow',   value: 0.4,  glyph: '◐' },
-  { id: 'normal', value: 1.0,  glyph: '●' },
-  { id: 'fast',   value: 2.2,  glyph: '⏩' }
+// Visitor-controllable motion preset (the only chip group public users see).
+// Each preset bundles motion kind + intensity + auto-rotation speed.
+const MOTION_PRESETS = [
+  { id: 'pause', kind: 'idle',  intensity: 0,    speed: 0,   glyph: '⏸' },
+  { id: 'calm',  kind: 'idle',  intensity: 0.35, speed: 0.5, glyph: '○' },
+  { id: 'swim',  kind: 'swim',  intensity: 0.7,  speed: 0.3, glyph: '🐟' },
+  { id: 'fly',   kind: 'fly',   intensity: 0.7,  speed: 0.5, glyph: '🦋' },
+  { id: 'orbit', kind: 'orbit', intensity: 0.7,  speed: 0.4, glyph: '🌀' },
+  { id: 'wild',  kind: 'idle',  intensity: 1.0,  speed: 1.6, glyph: '⏩' }
 ]
-const SPEED_LS_KEY = 'stp-gallery-rspeed'
+const SPEED_LS_KEY = 'stp-gallery-motion-preset'
 const PARAMS_LS_KEY = 'stp-gallery-params' // map: surface.id -> { paramKey: value }
 
 function defaultParams(surface) {
@@ -72,11 +75,11 @@ function askLeonardo(prompt) {
 export default function Gallery() {
   const { t, i18n } = useTranslation()
   const [activeId, setActiveId] = useState(DEFAULT_SURFACE_ID)
-  const [speedId, setSpeedId] = useState(() => {
-    try { return localStorage.getItem(SPEED_LS_KEY) || 'normal' } catch { return 'normal' }
+  const [presetId, setPresetId] = useState(() => {
+    try { return localStorage.getItem(SPEED_LS_KEY) || 'calm' } catch { return 'calm' }
   })
-  const visitorSpeed = (SPEED_PRESETS.find((s) => s.id === speedId) || SPEED_PRESETS[2]).value
-  useEffect(() => { try { localStorage.setItem(SPEED_LS_KEY, speedId) } catch { /* ignore */ } }, [speedId])
+  const preset = MOTION_PRESETS.find((s) => s.id === presetId) || MOTION_PRESETS[1]
+  useEffect(() => { try { localStorage.setItem(SPEED_LS_KEY, presetId) } catch { /* ignore */ } }, [presetId])
 
   // Per-surface parameter values (only meaningful for built-ins with a
   // surface.params schema). Loaded once from localStorage, persisted on change.
@@ -169,25 +172,26 @@ export default function Gallery() {
                 renderMode={view.renderMode}
                 paletteId={view.paletteId}
                 backgroundId={view.backgroundId}
-                motion={view.motion}
-                rotationSpeed={visitorSpeed}
+                motion={preset.intensity}
+                motionKind={preset.kind}
+                rotationSpeed={preset.speed}
                 params={currentParams}
               />
             </Suspense>
             <div
               className="gallery-speed-overlay"
               role="group"
-              aria-label={t('gallery.speed')}
+              aria-label={t('gallery.motionPreset')}
             >
-              {SPEED_PRESETS.map((s) => (
+              {MOTION_PRESETS.map((s) => (
                 <button
                   key={s.id}
                   type="button"
-                  className={`gallery-speed-chip${speedId === s.id ? ' on' : ''}`}
-                  onClick={() => setSpeedId(s.id)}
-                  title={t(`gallery.speeds.${s.id}`)}
-                  aria-label={t(`gallery.speeds.${s.id}`)}
-                  aria-pressed={speedId === s.id}
+                  className={`gallery-speed-chip${presetId === s.id ? ' on' : ''}`}
+                  onClick={() => setPresetId(s.id)}
+                  title={t(`gallery.motionPresets.${s.id}`)}
+                  aria-label={t(`gallery.motionPresets.${s.id}`)}
+                  aria-pressed={presetId === s.id}
                 >
                   {s.glyph}
                 </button>

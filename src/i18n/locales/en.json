@@ -155,6 +155,15 @@
       "normal": "Normal",
       "fast": "Fast"
     },
+    "motionPreset": "Motion",
+    "motionPresets": {
+      "pause": "Pause",
+      "calm":  "Calm",
+      "swim":  "Swim",
+      "fly":   "Fly",
+      "orbit": "Orbit",
+      "wild":  "Wild"
+    },
     "askLeoPrompt": "Tell me about {{name}} — its history, who first studied it, and where it appears in nature or other parts of mathematics.",
     "custom": {
       "add": "Add your own surface",

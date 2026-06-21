@@ -37,28 +37,71 @@ function newMotionSeed() {
 }
 
 /**
- * Apply ambient sway + breathing + jitter to a group.
- * `intensity` ∈ [0, 1] is the global motion level (Off → Wild).
- * `baseScale` lets the morph mesh combine its per-frame fit scale with the
- * breathing oscillation; defaults to 1.
- * Returns the resolved scale (callers don't have to read it back).
+ * Apply ambient motion to a group.
+ * `intensity` ∈ [0, 1] is the strength multiplier.
+ * `kind` selects the *style* of motion:
+ *   - 'idle'  → tiny random sway + breathing + jitter (default)
+ *   - 'swim'  → lateral fish-like sweep with body bank
+ *   - 'fly'   → slow figure-eight wander through 3D space
+ *   - 'orbit' → revolves around the origin in the XZ plane
+ * `baseScale` lets morph meshes combine their per-frame fit scale with
+ * the breathing oscillation; defaults to 1.
  */
-function applyMotion(group, time, seed, intensity, baseScale = 1) {
+function applyMotion(group, time, seed, intensity, baseScale = 1, kind = 'idle') {
   if (!group) return baseScale
   const I = intensity
   if (I <= 0) {
     group.rotation.x = 0
     group.rotation.z = 0
     group.position.x = 0
+    group.position.y = 0
     group.position.z = 0
     group.scale.setScalar(baseScale)
     return baseScale
   }
+
+  if (kind === 'swim') {
+    // A fish: glides side-to-side, banks into the turn, very mild bob.
+    const wave = Math.sin(time * 0.85)
+    group.rotation.x = Math.sin(time * 0.5 + seed.swayPhaseX) * 0.06 * I
+    group.rotation.z = wave * 0.22 * I
+    group.position.x = wave * 0.55 * I
+    group.position.y = Math.sin(time * 0.6 + seed.swayPhaseZ) * 0.06 * I
+    group.position.z = Math.sin(time * 0.45 + seed.jitterPhaseX) * 0.18 * I
+    group.scale.setScalar(baseScale)
+    return baseScale
+  }
+
+  if (kind === 'fly') {
+    // A drifting object — Lissajous-style figure in three axes.
+    group.rotation.x = Math.sin(time * 0.28) * 0.12 * I
+    group.rotation.z = Math.sin(time * 0.35 + 1.2) * 0.12 * I
+    group.position.x = Math.sin(time * 0.32) * 0.55 * I
+    group.position.y = Math.cos(time * 0.55) * 0.32 * I
+    group.position.z = Math.sin(time * 0.41 + seed.jitterPhaseZ) * 0.42 * I
+    group.scale.setScalar(baseScale)
+    return baseScale
+  }
+
+  if (kind === 'orbit') {
+    // Circles a phantom centre, banking inward like a satellite.
+    const a = time * 0.45
+    group.position.x = Math.cos(a) * 0.55 * I
+    group.position.z = Math.sin(a) * 0.55 * I
+    group.position.y = Math.sin(time * 0.6 + seed.swayPhaseZ) * 0.12 * I
+    group.rotation.z = Math.sin(a) * 0.14 * I
+    group.rotation.x = Math.cos(a) * 0.10 * I
+    group.scale.setScalar(baseScale)
+    return baseScale
+  }
+
+  // ---- idle (current default) ----
   group.rotation.x = Math.sin(time * seed.swayFreqX + seed.swayPhaseX) * 0.18 * I
   group.rotation.z = Math.sin(time * seed.swayFreqZ + seed.swayPhaseZ) * 0.12 * I
   const breath = 1 + Math.sin(time * seed.breathFreq + seed.breathPhase) * 0.05 * I
   group.scale.setScalar(baseScale * breath)
   group.position.x = Math.sin(time * seed.jitterFreq + seed.jitterPhaseX) * 0.06 * I
+  group.position.y = 0
   group.position.z = Math.cos(time * seed.jitterFreq * 1.1 + seed.jitterPhaseZ) * 0.06 * I
   return baseScale * breath
 }
@@ -203,7 +246,7 @@ function SurfaceLayers({ geometry, renderMode = 'solid' }) {
   )
 }
 
-function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, autoRotate = true, rotationSpeed = 1 }) {
+function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, motionKind = 'idle', autoRotate = true, rotationSpeed = 1 }) {
   const groupRef = useRef()
   const seed = useMemo(newMotionSeed, [])
 
@@ -233,7 +276,7 @@ function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, autoRotate 
     if (!g) return
     const time = state.clock.elapsedTime
     if (autoRotate) g.rotation.y += delta * AUTO_ROTATE_SPEED * (rotationSpeed ?? 1)
-    applyMotion(g, time, seed, motion, 1)
+    applyMotion(g, time, seed, motion, 1, motionKind)
 
     // Surface flow: gentler than on lines/points so the underlying
     // shape stays readable. Two slow brightness peaks chase across
@@ -270,7 +313,7 @@ function StaticSurface({ geometry, rgbStops, renderMode, motion = 0, autoRotate 
   )
 }
 
-function ParametricSurfaceMesh({ surface, renderMode, palette, params, motion, autoRotate, rotationSpeed }) {
+function ParametricSurfaceMesh({ surface, renderMode, palette, params, motion, motionKind, autoRotate, rotationSpeed }) {
   const { id: palId, rgbStops } = stopsOf(palette)
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
@@ -280,10 +323,10 @@ function ParametricSurfaceMesh({ surface, renderMode, palette, params, motion, a
     applyHeightGradient(g, rgbStops) // initial colours; useFrame overrides
     return g
   }, [surface, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
-  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
+  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} motionKind={motionKind} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
 }
 
-function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion, autoRotate, rotationSpeed }) {
+function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion, motionKind, autoRotate, rotationSpeed }) {
   const { id: palId, rgbStops } = stopsOf(palette)
   const paramsKey = JSON.stringify(params || {})
   const geometry = useMemo(() => {
@@ -292,7 +335,7 @@ function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion, auto
     applyHeightGradient(g, rgbStops)
     return g
   }, [surface, paramsKey]) // eslint-disable-line react-hooks/exhaustive-deps
-  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
+  return <StaticSurface geometry={geometry} rgbStops={rgbStops} renderMode={renderMode} motion={motion} motionKind={motionKind} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
 }
 
 /**
@@ -300,7 +343,7 @@ function BuiltinSurfaceMesh({ surface, renderMode, palette, params, motion, auto
  * the position + color attributes every frame in place — no GC pressure even
  * at 60fps with ~25k vertices.
  */
-function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0, rotationSpeed = 1 }) {
+function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0, motionKind = 'idle', rotationSpeed = 1 }) {
   const groupRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { rgbStops } = stopsOf(palette)
@@ -409,7 +452,7 @@ function MorphingSurfaceMesh({ surface, renderMode, palette, params, motion = 0,
  * 3·n with sequential (x,y,z) triples; we color by progression along the path
  * (gold → violet) and rotate the whole thing slowly.
  */
-function AttractorMesh({ surface, palette, params, motion = 0, rotationSpeed = 1 }) {
+function AttractorMesh({ surface, palette, params, motion = 0, motionKind = 'idle', rotationSpeed = 1 }) {
   const groupRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { id: palId, rgbStops } = stopsOf(palette)
@@ -446,7 +489,7 @@ function AttractorMesh({ surface, palette, params, motion = 0, rotationSpeed = 1
     if (!g) return
     const time = state.clock.elapsedTime
     g.rotation.y += delta * AUTO_ROTATE_SPEED * (rotationSpeed ?? 1)
-    applyMotion(g, time, seed, motion, 1)
+    applyMotion(g, time, seed, motion, 1, motionKind)
 
     // Flow effect on attractor lines, now in three layers:
     //   1) Palette pattern shifts along the line (river of colour)
@@ -513,7 +556,7 @@ function AttractorMesh({ surface, palette, params, motion = 0, rotationSpeed = 1
  * triples. If `surface.animated` is truthy, a sinusoidal draw-range
  * oscillates 0..N..0 so the spiral visibly blooms.
  */
-function PointsMesh({ surface, palette, params, motion = 0, rotationSpeed = 1 }) {
+function PointsMesh({ surface, palette, params, motion = 0, motionKind = 'idle', rotationSpeed = 1 }) {
   const meshRef = useRef()
   const seed = useMemo(newMotionSeed, [])
   const { id: palId, rgbStops } = stopsOf(palette)
@@ -628,12 +671,12 @@ function PointsMesh({ surface, palette, params, motion = 0, rotationSpeed = 1 })
   )
 }
 
-function Surface({ surface, renderMode, palette, params, motion, autoRotate = true, rotationSpeed = 1 }) {
-  if (surface.kind === 'morph')     return <MorphingSurfaceMesh   surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} rotationSpeed={rotationSpeed} />
-  if (surface.kind === 'builtin')   return <BuiltinSurfaceMesh    surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
-  if (surface.kind === 'attractor') return <AttractorMesh         surface={surface}                          palette={palette} params={params} motion={motion} rotationSpeed={rotationSpeed} />
-  if (surface.kind === 'points')    return <PointsMesh            surface={surface}                          palette={palette} params={params} motion={motion} rotationSpeed={rotationSpeed} />
-  return <ParametricSurfaceMesh surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
+function Surface({ surface, renderMode, palette, params, motion, motionKind = 'idle', autoRotate = true, rotationSpeed = 1 }) {
+  if (surface.kind === 'morph')     return <MorphingSurfaceMesh   surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} motionKind={motionKind} rotationSpeed={rotationSpeed} />
+  if (surface.kind === 'builtin')   return <BuiltinSurfaceMesh    surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} motionKind={motionKind} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
+  if (surface.kind === 'attractor') return <AttractorMesh         surface={surface}                          palette={palette} params={params} motion={motion} motionKind={motionKind} rotationSpeed={rotationSpeed} />
+  if (surface.kind === 'points')    return <PointsMesh            surface={surface}                          palette={palette} params={params} motion={motion} motionKind={motionKind} rotationSpeed={rotationSpeed} />
+  return <ParametricSurfaceMesh surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} motionKind={motionKind} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
 }
 
 // Which surface kinds respect the render-mode picker (solid / wireframe / both / points)?
@@ -649,6 +692,7 @@ export default function SurfaceViewer({
   backgroundId = DEFAULT_BACKGROUND,
   params = null,
   motion = 0,
+  motionKind = 'idle',
   autoRotate = true,
   rotationSpeed = 1,
   interactive = true
@@ -671,7 +715,7 @@ export default function SurfaceViewer({
       <ambientLight intensity={ambient} />
       <directionalLight position={[5, 6, 4]} intensity={1.1} />
       <directionalLight position={[-5, -3, -5]} intensity={0.45} color={bg.accent} />
-      <Surface surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
+      <Surface surface={surface} renderMode={renderMode} palette={palette} params={params} motion={motion} motionKind={motionKind} autoRotate={autoRotate} rotationSpeed={rotationSpeed} />
       {interactive && <OrbitControls enablePan={false} minDistance={2.6} maxDistance={11} />}
     </Canvas>
   )
