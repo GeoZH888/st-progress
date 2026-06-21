@@ -550,3 +550,56 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- Admin: live preview chip controls (Surfaces editor) ---------- */
+.admin-preview-wrap {
+  display: grid;
+  gap: 0.6rem;
+}
+.admin-preview-controls {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.55rem 0.7rem;
+  background: #faf6ec;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+}
+.admin-preview-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.admin-preview-lbl {
+  font-size: 0.78rem;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 0.2rem;
+}
+.admin-preview-chip {
+  padding: 0.2rem 0.6rem;
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--admin-ink);
+  cursor: pointer;
+}
+.admin-preview-chip:hover {
+  background: #f6efe0;
+}
+.admin-preview-chip.on {
+  background: linear-gradient(180deg, #faf6ec, #f3e6c5);
+  border-color: #c9a85a;
+  font-weight: 600;
+}
+.admin-preview-select {
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.8rem;
+  background: #fff;
+}

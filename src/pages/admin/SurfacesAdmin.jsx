@@ -37,20 +37,76 @@ y = (R + r * cos(v) + 0.18 * twist) * sin(u)
 z = r * sin(v) + 0.18 * twist
 `
 
+const PREVIEW_PALETTES = [
+  'viridis', 'plasma', 'parula', 'turbo', 'jet', 'hot', 'magma',
+  'inferno', 'gold-violet', 'sunset', 'ocean', 'ember', 'mono-gold'
+]
+const PREVIEW_BGS = ['renaissance', 'midnight', 'space', 'graphite', 'forest', 'parchment', 'paper']
+const PREVIEW_MODES = ['solid', 'wireframe', 'both', 'points']
+const PREVIEW_MOTIONS = [
+  { id: 'off', value: 0 }, { id: 'gentle', value: 0.35 },
+  { id: 'lively', value: 0.7 }, { id: 'wild', value: 1.0 }
+]
+
 // Compile + render a surface row inside the admin editor so the super-admin
-// can see how it looks before clicking Publish.
+// can see how it looks (with full controls) before clicking Publish.
 function SurfacePreview({ row }) {
+  const { t } = useTranslation()
+  const [renderMode, setRenderMode] = useState('solid')
+  const [paletteId, setPaletteId] = useState('viridis')
+  const [backgroundId, setBackgroundId] = useState('renaissance')
+  const [motionId, setMotionId] = useState('gentle')
+
   const compiled = useMemo(() => {
     try { return sharedRowToSurface(row) } catch { return null }
   }, [row])
+
+  const motion = PREVIEW_MOTIONS.find((m) => m.id === motionId)?.value ?? 0.35
+
   if (!compiled) {
-    return <div className="admin-error" style={{ marginTop: '0.5rem' }}>Cannot preview — fix the expressions above and re-save.</div>
+    return <div className="admin-error" style={{ marginTop: '0.5rem' }}>Cannot preview — fix the expressions above.</div>
   }
   return (
-    <div style={{ width: '100%', aspectRatio: '4 / 3', maxHeight: 380, background: '#1c1814', borderRadius: 10, overflow: 'hidden', marginTop: '0.6rem' }}>
-      <Suspense fallback={<div style={{ color: '#888', padding: '1rem' }}>loading 3D…</div>}>
-        <SurfaceViewer surface={compiled} renderMode="solid" motion={0.3} />
-      </Suspense>
+    <div className="admin-preview-wrap" style={{ marginTop: '0.6rem' }}>
+      <div className="admin-preview-controls">
+        <div className="admin-preview-row">
+          <span className="admin-preview-lbl">{t('gallery.style')}:</span>
+          {PREVIEW_MODES.map((m) => (
+            <button key={m} type="button" className={`admin-preview-chip${renderMode === m ? ' on' : ''}`} onClick={() => setRenderMode(m)}>
+              {t(`gallery.styles.${m}`)}
+            </button>
+          ))}
+        </div>
+        <div className="admin-preview-row">
+          <span className="admin-preview-lbl">{t('gallery.motion')}:</span>
+          {PREVIEW_MOTIONS.map((m) => (
+            <button key={m.id} type="button" className={`admin-preview-chip${motionId === m.id ? ' on' : ''}`} onClick={() => setMotionId(m.id)}>
+              {t(`gallery.motions.${m.id}`)}
+            </button>
+          ))}
+        </div>
+        <div className="admin-preview-row">
+          <span className="admin-preview-lbl">{t('gallery.palette')}:</span>
+          <select value={paletteId} onChange={(e) => setPaletteId(e.target.value)} className="admin-preview-select">
+            {PREVIEW_PALETTES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <span className="admin-preview-lbl" style={{ marginLeft: '0.6rem' }}>{t('gallery.background')}:</span>
+          <select value={backgroundId} onChange={(e) => setBackgroundId(e.target.value)} className="admin-preview-select">
+            {PREVIEW_BGS.map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </div>
+      </div>
+      <div style={{ width: '100%', aspectRatio: '4 / 3', maxHeight: 420, background: '#1c1814', borderRadius: 10, overflow: 'hidden' }}>
+        <Suspense fallback={<div style={{ color: '#888', padding: '1rem' }}>loading 3D…</div>}>
+          <SurfaceViewer
+            surface={compiled}
+            renderMode={renderMode}
+            paletteId={paletteId}
+            backgroundId={backgroundId}
+            motion={motion}
+          />
+        </Suspense>
+      </div>
     </div>
   )
 }
