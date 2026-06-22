@@ -144,7 +144,14 @@ export default function Gallery() {
     return out
   }, [sharedRows])
 
-  const allSurfaces = useMemo(() => [...SURFACES, ...compiledShared], [compiledShared])
+  // Dedupe by id: when a shared DB row has a slug that matches a built-in's
+  // id (e.g. 'klein', 'lorenz'), the DB row wins and the code-side built-in
+  // is hidden. This is how the built-ins-in-DB migration cuts over without
+  // visitors seeing every surface twice.
+  const allSurfaces = useMemo(() => {
+    const sharedIds = new Set(compiledShared.map((s) => s.id))
+    return [...SURFACES.filter((s) => !sharedIds.has(s.id)), ...compiledShared]
+  }, [compiledShared])
   const surface = allSurfaces.find((s) => s.id === activeId) || allSurfaces[0]
   const lang = i18n.language
   const surfaceName = localizedName(surface, lang)
