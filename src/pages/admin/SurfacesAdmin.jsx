@@ -147,8 +147,23 @@ function SurfacePreview({ row, onSavedDefaults }) {
   const [savedMsg, setSavedMsg] = useState(null)
 
   const { compiled, compileError } = useMemo(() => {
-    try { return { compiled: sharedRowToSurface(row), compileError: null } }
-    catch (e) { return { compiled: null, compileError: e.message } }
+    try {
+      const out = sharedRowToSurface(row)
+      if (!out) {
+        // Should never happen — sharedRowToSurface always returns or throws —
+        // but guard so the UI shows something useful instead of the bland
+        // fallback if a future branch ever forgets to return.
+        const msg = `sharedRowToSurface returned ${out} for kind=${row?.kind || 'parametric'}`
+        // eslint-disable-next-line no-console
+        console.warn('[SurfacePreview]', msg, row)
+        return { compiled: null, compileError: msg }
+      }
+      return { compiled: out, compileError: null }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('[SurfacePreview] compile failed:', e.message, row)
+      return { compiled: null, compileError: e.message || String(e) }
+    }
   }, [row])
 
   const motion = PREVIEW_MOTIONS.find((m) => m.id === motionId)?.value ?? 0.35
