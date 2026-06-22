@@ -351,6 +351,33 @@
       "codeMode": "代码模式（多行 JS 函数体）",
       "codeLabel": "源代码 —— 给 x, y, z 赋值（u, v ∈ [0, 2π]）",
       "codeHint": "多行 JS 函数体——可声明局部变量、使用 sin/cos 等函数，最后给 x、y、z 赋值。沙箱受限：禁止 window、document、fetch、import、eval、globalThis、self。",
+      "kind": "曲面类型",
+      "kinds": {
+        "parametric": "参数曲面（u, v）",
+        "morph": "形变（含动画）",
+        "attractor": "吸引子（ODE）",
+        "points": "点云",
+        "builtin": "内置几何"
+      },
+      "builtinKind": "内置几何",
+      "builtinKinds": {
+        "torusKnot": "环面纽结"
+      },
+      "pointCount": "默认采样点数",
+      "slug": "稳定 slug（可选）",
+      "slugHint": "小写 id，用于与内置曲面去重（如 'klein'）。用户自建曲面留空即可。",
+      "paramsSchema": "访客滑块（JSON）",
+      "paramsSchemaHint": "数组：{ key, label, min, max, step, default, precision? } —— 决定视口下方的滑块。",
+      "metadata": "类型相关额外项（JSON）",
+      "metadataHint": "按类型存放额外参数：parametric/morph → { uvSegments }，attractor → { dt, x0, y0, z0 }，points → { pointSize, animated }。",
+      "loadStarter": "载入起始模板",
+      "codeLabelMorph": "源代码 —— 给 x, y, z 赋值；可用 u, v, time, p",
+      "codeLabelAttractor": "源代码 —— 由 x, y, z, p 计算 dx, dy, dz",
+      "codeLabelPoints": "源代码 —— 由 i, n, p 计算 x, y, z",
+      "codeHintMorph": "函数体接收 (u, v, time, p)，与 parametric 同沙箱（sin/cos/sinh/cosh/PI 等）。用 `time` 驱动动画。",
+      "codeHintAttractor": "函数体返回导数 (dx, dy, dz)，由当前状态 (x, y, z) 和参数 p 决定。外层用固定步长欧拉积分。",
+      "codeHintPoints": "函数体把第 i 个（共 n 个）点放到 (x, y, z)。外层会遍历并打包到缓冲区。",
+      "builtinHint": "内置几何使用 Three.js 现成的 helper（如 TorusKnotGeometry）。参数通过下方 JSON 设置，无需源代码。",
       "saveDefaults": "保存为该曲面的默认外观",
       "saveDefaultsTip": "把当前预览的选择持久化，公开 /gallery 将以此显示该曲面",
       "viewSaved": "默认外观已保存 —— 公开 /gallery 下次加载将采用。"

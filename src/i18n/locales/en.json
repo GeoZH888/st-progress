@@ -351,6 +351,33 @@
       "codeMode": "Code mode (multi-line JS body)",
       "codeLabel": "Source — assign x, y, z (u, v ∈ [0, 2π])",
       "codeHint": "Multi-line JS body — declare locals, use sin/cos/etc., assign x, y, z. Whitelisted scope; disallowed: window, document, fetch, import, eval, globalThis, self.",
+      "kind": "Surface kind",
+      "kinds": {
+        "parametric": "Parametric (u, v)",
+        "morph": "Morph (animated)",
+        "attractor": "Attractor (ODE)",
+        "points": "Point cloud",
+        "builtin": "Built-in geometry"
+      },
+      "builtinKind": "Built-in geometry",
+      "builtinKinds": {
+        "torusKnot": "Torus knot"
+      },
+      "pointCount": "Default point count",
+      "slug": "Stable slug (optional)",
+      "slugHint": "Lowercase id used to dedupe against built-ins (e.g. 'klein'). Leave blank for user-created surfaces.",
+      "paramsSchema": "Visitor sliders (JSON)",
+      "paramsSchemaHint": "Array of { key, label, min, max, step, default, precision? } — controls the sliders visitors see under the viewport.",
+      "metadata": "Kind-specific extras (JSON)",
+      "metadataHint": "Object with extras per kind: parametric/morph → { uvSegments }, attractor → { dt, x0, y0, z0 }, points → { pointSize, animated }.",
+      "loadStarter": "Load starter body",
+      "codeLabelMorph": "Source — assign x, y, z; use u, v, time, p",
+      "codeLabelAttractor": "Source — assign dx, dy, dz from x, y, z, p",
+      "codeLabelPoints": "Source — assign x, y, z from i, n, p",
+      "codeHintMorph": "Bodies receive (u, v, time, p). Same scope as parametric — sin/cos/sinh/cosh/PI etc. Use `time` to drive animation.",
+      "codeHintAttractor": "Body returns the derivative (dx, dy, dz) from current state (x, y, z) and params p. The wrapper integrates with fixed-step Euler.",
+      "codeHintPoints": "Body places point i of n at (x, y, z). Wrapper iterates and packs into a buffer.",
+      "builtinHint": "Built-in geometries use a Three.js helper (TorusKnotGeometry, etc.). Set the params via the JSON below — no source code needed.",
       "saveDefaults": "Save as defaults for this surface",
       "saveDefaultsTip": "Persist the current preview choices so /gallery visitors see this surface with them",
       "viewSaved": "Defaults saved — public /gallery will use them on next load."

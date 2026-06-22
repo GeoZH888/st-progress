@@ -4,7 +4,13 @@ import {
   fetchSharedSurfaces, upsertSharedSurface, deleteSharedSurface,
   sharedRowToSurface
 } from '../../lib/surfacesDb'
-import { compileExpr, compileSource } from '../../lib/customSurfaces'
+import {
+  compileExpr,
+  compileSource,
+  compileMorphSource,
+  compileAttractorSource,
+  compilePointsSource
+} from '../../lib/customSurfaces'
 import { CATEGORIES } from '../../lib/categories'
 import TrilingualField from '../../components/TrilingualField'
 
@@ -23,9 +29,20 @@ function blank() {
     sort_order: 100,
     published: false,
     featured: false,
-    display_mode: 'animated'
+    display_mode: 'animated',
+    kind: 'parametric',
+    slug: null,
+    builtin_kind: null,
+    point_count: null,
+    params_schema: [],
+    metadata: {}
   }
 }
+
+const KINDS = ['parametric', 'morph', 'attractor', 'points', 'builtin']
+const BUILTIN_KINDS = ['torusKnot']
+const KINDS_WITH_CODE = new Set(['parametric', 'morph', 'attractor', 'points'])
+const KINDS_WITH_POINT_COUNT = new Set(['attractor', 'points'])
 
 const STARTER_SOURCE = `// u, v ∈ [0, 2π].  Allowed: sin cos tan sinh cosh tanh sqrt cbrt
 // abs exp log pow min max floor ceil PI E TAU
@@ -36,6 +53,47 @@ x = (R + r * cos(v) + 0.18 * twist) * cos(u)
 y = (R + r * cos(v) + 0.18 * twist) * sin(u)
 z = r * sin(v) + 0.18 * twist
 `
+
+// Per-kind starter bodies. Loaded into the textarea when the admin switches
+// kind and the current source is empty (or via the "Load starter" button).
+const STARTERS = {
+  parametric: STARTER_SOURCE,
+  morph: `// (u, v, time, p) — assign x, y, z. Use time to animate.
+const phase = sin(time * 0.5) * PI
+const r = 1 + 0.3 * cos(3 * u + phase)
+x = r * cos(u) * sin(v)
+y = r * cos(v)
+z = r * sin(u) * sin(v)
+`,
+  attractor: `// (x, y, z, p) — state in; assign derivative dx, dy, dz.
+// Wrapper integrates with fixed-step Euler. Lorenz example:
+const sigma = (p && p.sigma != null) ? p.sigma : 10
+const rho   = (p && p.rho   != null) ? p.rho   : 28
+const beta  = (p && p.beta  != null) ? p.beta  : 8/3
+dx = sigma * (y - x)
+dy = x * (rho - z) - y
+dz = x * y - beta * z
+`,
+  points: `// (i, n, p) — index in [0, n); assign x, y, z. Vogel example:
+const angle = (i + 1) * (3 - sqrt(5)) * PI
+const r = 0.06 * sqrt(i + 1)
+x = r * cos(angle)
+y = 0.06 * r * r
+z = r * sin(angle)
+`
+}
+
+function tryParseJson(raw, fallback) {
+  if (typeof raw !== 'string') return raw ?? fallback
+  if (!raw.trim()) return fallback
+  try { return JSON.parse(raw) } catch { return fallback }
+}
+
+function stringifyForEditor(value, fallback) {
+  if (value == null) return fallback
+  if (typeof value === 'string') return value
+  try { return JSON.stringify(value, null, 2) } catch { return fallback }
+}
 
 const PREVIEW_PALETTES = [
   'viridis', 'plasma', 'parula', 'turbo', 'jet', 'hot', 'magma',
@@ -209,7 +267,14 @@ function SurfacePreview({ row, onSavedDefaults }) {
 
 function SurfaceEditor({ initial, onSave, onDelete, onClose }) {
   const { t } = useTranslation()
-  const [form, setForm] = useState(initial)
+  // Editor state mirrors the DB row but holds params_schema / metadata as raw
+  // JSON strings so the admin can type partial JSON without parse errors
+  // wiping their work. We parse + validate on save and for the live preview.
+  const [form, setForm] = useState(() => ({
+    ...initial,
+    params_schema_raw: stringifyForEditor(initial.params_schema, '[]'),
+    metadata_raw: stringifyForEditor(initial.metadata, '{}')
+  }))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -227,28 +292,103 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
     window.dispatchEvent(new CustomEvent('leonardo-open', { detail: { prompt } }))
   }
 
-  const useCode = (form.source_code || '').trim().length > 0
+  const kind = form.kind || 'parametric'
+  // 'Code mode' only exists for parametric (legacy x/y/z exprs vs source_code).
+  // Other kinds always use source_code — there is no expression mode for them.
+  const useCode = kind !== 'parametric' || (form.source_code || '').trim().length > 0
+
+  function onKindChange(nextKind) {
+    setForm((f) => {
+      const patchObj = { kind: nextKind }
+      // If switching to a kind that requires code and the body is empty, load
+      // the per-kind starter so the admin sees a working template.
+      const needsCode = KINDS_WITH_CODE.has(nextKind)
+      if (needsCode && !(f.source_code || '').trim()) {
+        patchObj.source_code = STARTERS[nextKind] || ''
+      }
+      if (nextKind === 'builtin') {
+        // Builtin doesn't use source_code or x/y/z exprs.
+        patchObj.source_code = null
+        if (!f.builtin_kind) patchObj.builtin_kind = BUILTIN_KINDS[0]
+      } else {
+        patchObj.builtin_kind = null
+      }
+      if (!KINDS_WITH_POINT_COUNT.has(nextKind)) {
+        patchObj.point_count = null
+      }
+      return { ...f, ...patchObj }
+    })
+  }
+
+  function loadStarter() {
+    if (KINDS_WITH_CODE.has(kind)) {
+      patch({ source_code: STARTERS[kind] || '' })
+    }
+  }
+
+  // Parsed JSON for the live preview. Failures fall back silently so the
+  // preview keeps rendering with the previous valid value while admin edits.
+  const paramsSchemaParsed = useMemo(
+    () => tryParseJson(form.params_schema_raw, []),
+    [form.params_schema_raw]
+  )
+  const metadataParsed = useMemo(
+    () => tryParseJson(form.metadata_raw, {}),
+    [form.metadata_raw]
+  )
+  const previewRow = useMemo(() => ({
+    ...form,
+    params_schema: Array.isArray(paramsSchemaParsed) ? paramsSchemaParsed : [],
+    metadata: (metadataParsed && typeof metadataParsed === 'object' && !Array.isArray(metadataParsed))
+      ? metadataParsed
+      : {}
+  }), [form, paramsSchemaParsed, metadataParsed])
 
   async function handleSave() {
     setSaving(true); setError(null)
     try {
-      // Validate compiles BEFORE saving so an admin doesn't ship a broken
-      // surface to the public.
-      if (useCode) {
-        compileSource(form.source_code)
-      } else {
-        compileExpr(form.x_expr)
-        compileExpr(form.y_expr)
-        compileExpr(form.z_expr)
+      // Validate JSON fields strictly on save (live preview was permissive).
+      const ps = JSON.parse(form.params_schema_raw || '[]')
+      if (!Array.isArray(ps)) throw new Error('params_schema must be a JSON array')
+      const md = JSON.parse(form.metadata_raw || '{}')
+      if (!md || typeof md !== 'object' || Array.isArray(md)) {
+        throw new Error('metadata must be a JSON object')
       }
+
+      // Validate the body / expressions compile, dispatching on kind.
+      if (kind === 'parametric') {
+        if ((form.source_code || '').trim()) compileSource(form.source_code)
+        else { compileExpr(form.x_expr); compileExpr(form.y_expr); compileExpr(form.z_expr) }
+      } else if (kind === 'morph') {
+        compileMorphSource(form.source_code)
+      } else if (kind === 'attractor') {
+        compileAttractorSource(form.source_code)
+      } else if (kind === 'points') {
+        compilePointsSource(form.source_code)
+      } else if (kind === 'builtin') {
+        if (!form.builtin_kind) throw new Error('Pick a built-in geometry')
+        if (!BUILTIN_KINDS.includes(form.builtin_kind)) {
+          throw new Error(`Unknown built-in geometry: ${form.builtin_kind}`)
+        }
+      }
+
+      const isParametricExprs = kind === 'parametric' && !(form.source_code || '').trim()
       const payload = {
         category: form.category,
         name_en: form.name_en, name_it: form.name_it, name_zh: form.name_zh,
         equation: form.equation || null,
-        x_expr: form.x_expr,
-        y_expr: form.y_expr,
-        z_expr: form.z_expr,
-        source_code: useCode ? form.source_code : null,
+        slug: (form.slug || '').trim() || null,
+        kind,
+        builtin_kind: kind === 'builtin' ? form.builtin_kind : null,
+        params_schema: ps,
+        point_count: KINDS_WITH_POINT_COUNT.has(kind)
+          ? (form.point_count == null || form.point_count === '' ? null : Number(form.point_count))
+          : null,
+        metadata: md,
+        x_expr: isParametricExprs ? form.x_expr : null,
+        y_expr: isParametricExprs ? form.y_expr : null,
+        z_expr: isParametricExprs ? form.z_expr : null,
+        source_code: kind === 'builtin' || isParametricExprs ? null : (form.source_code || null),
         sort_order: form.sort_order ?? 100,
         published: !!form.published,
         featured: !!form.featured,
@@ -256,6 +396,14 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
       }
       if (form.id) payload.id = form.id
       const saved = await upsertSharedSurface(payload)
+      // Re-derive the raw strings so the textareas stay consistent with what
+      // the server returned (e.g. NULLs become '[]' / '{}').
+      setForm((f) => ({
+        ...f,
+        ...saved,
+        params_schema_raw: stringifyForEditor(saved.params_schema, '[]'),
+        metadata_raw: stringifyForEditor(saved.metadata, '{}')
+      }))
       onSave(saved)
     } catch (e) {
       setError(e.message)
@@ -271,13 +419,9 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
     }
     setSaving(true); setError(null)
     try {
+      // Partial update — only flips the publish flag; every other column stays.
       const saved = await upsertSharedSurface({
         id: form.id,
-        category: form.category,
-        name_en: form.name_en, name_it: form.name_it, name_zh: form.name_zh,
-        equation: form.equation || null,
-        x_expr: form.x_expr, y_expr: form.y_expr, z_expr: form.z_expr,
-        sort_order: form.sort_order ?? 100,
         published: !form.published
       })
       setForm((f) => ({ ...f, published: saved.published }))
@@ -354,56 +498,166 @@ Return ONLY a JSON object with these keys — x/y/z are JavaScript expressions i
         </label>
       </div>
 
-      <div className="admin-field-grid" style={{ marginBottom: '0.4rem' }}>
-        <label className="admin-field" style={{ gridColumn: '1 / -1', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+      {/* ---------- kind + kind-specific knobs ---------- */}
+      <div className="admin-field-grid">
+        <label className="admin-field">
+          <span>{t('admin.surfaces.kind')}</span>
+          <select value={kind} onChange={(e) => onKindChange(e.target.value)}>
+            {KINDS.map((k) => (
+              <option key={k} value={k}>{t(`admin.surfaces.kinds.${k}`)}</option>
+            ))}
+          </select>
+        </label>
+        {kind === 'builtin' && (
+          <label className="admin-field">
+            <span>{t('admin.surfaces.builtinKind')}</span>
+            <select value={form.builtin_kind || ''} onChange={(e) => patch({ builtin_kind: e.target.value })}>
+              {BUILTIN_KINDS.map((bk) => (
+                <option key={bk} value={bk}>{t(`admin.surfaces.builtinKinds.${bk}`)}</option>
+              ))}
+            </select>
+          </label>
+        )}
+        {KINDS_WITH_POINT_COUNT.has(kind) && (
+          <label className="admin-field">
+            <span>{t('admin.surfaces.pointCount')}</span>
+            <input
+              type="number"
+              value={form.point_count ?? ''}
+              onChange={(e) => patch({ point_count: e.target.value === '' ? null : parseInt(e.target.value, 10) })}
+              placeholder={kind === 'attractor' ? '7000' : '2000'}
+            />
+          </label>
+        )}
+        <label className="admin-field">
+          <span>{t('admin.surfaces.slug')}</span>
           <input
-            type="checkbox"
-            checked={useCode}
-            onChange={(e) => patch({ source_code: e.target.checked ? (form.source_code || STARTER_SOURCE) : '' })}
-            style={{ width: 'auto', margin: 0 }}
+            type="text"
+            value={form.slug || ''}
+            onChange={(e) => patch({ slug: e.target.value })}
+            placeholder="klein, lorenz, …"
           />
-          <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: '0.92rem', color: 'var(--admin-ink)' }}>
-            {t('admin.surfaces.codeMode')}
-          </span>
         </label>
       </div>
 
-      {useCode ? (
-        <label className="admin-field">
-          <span>{t('admin.surfaces.codeLabel')}</span>
-          <textarea
-            value={form.source_code}
-            onChange={(e) => patch({ source_code: e.target.value })}
-            style={{
-              minHeight: 200,
-              fontFamily: "ui-monospace, 'SF Mono', Consolas, monospace",
-              fontSize: '0.88rem',
-              lineHeight: 1.5,
-              whiteSpace: 'pre',
-              tabSize: 2
-            }}
-            spellCheck={false}
-          />
-        </label>
-      ) : (
-        <div className="admin-field-grid">
-          <label className="admin-field">
-            <span>x(u, v)</span>
-            <input type="text" value={form.x_expr} onChange={(e) => patch({ x_expr: e.target.value })} />
-          </label>
-          <label className="admin-field">
-            <span>y(u, v)</span>
-            <input type="text" value={form.y_expr} onChange={(e) => patch({ y_expr: e.target.value })} />
-          </label>
-          <label className="admin-field">
-            <span>z(u, v)</span>
-            <input type="text" value={form.z_expr} onChange={(e) => patch({ z_expr: e.target.value })} />
+      {/* ---------- body editor (kind-dependent) ---------- */}
+      {kind === 'parametric' && (
+        <div className="admin-field-grid" style={{ marginBottom: '0.4rem' }}>
+          <label className="admin-field" style={{ gridColumn: '1 / -1', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+            <input
+              type="checkbox"
+              checked={useCode}
+              onChange={(e) => patch({ source_code: e.target.checked ? (form.source_code || STARTER_SOURCE) : '' })}
+              style={{ width: 'auto', margin: 0 }}
+            />
+            <span style={{ textTransform: 'none', letterSpacing: 0, fontSize: '0.92rem', color: 'var(--admin-ink)' }}>
+              {t('admin.surfaces.codeMode')}
+            </span>
           </label>
         </div>
       )}
-      <p className="admin-sub">{useCode ? t('admin.surfaces.codeHint') : t('admin.surfaces.hint')}</p>
 
-      <SurfacePreview row={form} onSavedDefaults={(saved) => setForm((f) => ({ ...f, view_config: saved.view_config }))} />
+      {kind === 'builtin' ? (
+        <p className="admin-sub">{t('admin.surfaces.builtinHint')}</p>
+      ) : useCode ? (
+        <>
+          <label className="admin-field">
+            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span>{
+                kind === 'morph'     ? t('admin.surfaces.codeLabelMorph') :
+                kind === 'attractor' ? t('admin.surfaces.codeLabelAttractor') :
+                kind === 'points'    ? t('admin.surfaces.codeLabelPoints') :
+                                       t('admin.surfaces.codeLabel')
+              }</span>
+              <button
+                type="button"
+                className="admin-btn admin-btn-ghost"
+                style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}
+                onClick={loadStarter}
+                title={t('admin.surfaces.loadStarter')}
+              >
+                ↺ {t('admin.surfaces.loadStarter')}
+              </button>
+            </span>
+            <textarea
+              value={form.source_code || ''}
+              onChange={(e) => patch({ source_code: e.target.value })}
+              style={{
+                minHeight: 200,
+                fontFamily: "ui-monospace, 'SF Mono', Consolas, monospace",
+                fontSize: '0.88rem',
+                lineHeight: 1.5,
+                whiteSpace: 'pre',
+                tabSize: 2
+              }}
+              spellCheck={false}
+            />
+          </label>
+          <p className="admin-sub">{
+            kind === 'morph'     ? t('admin.surfaces.codeHintMorph') :
+            kind === 'attractor' ? t('admin.surfaces.codeHintAttractor') :
+            kind === 'points'    ? t('admin.surfaces.codeHintPoints') :
+                                   t('admin.surfaces.codeHint')
+          }</p>
+        </>
+      ) : (
+        <>
+          <div className="admin-field-grid">
+            <label className="admin-field">
+              <span>x(u, v)</span>
+              <input type="text" value={form.x_expr || ''} onChange={(e) => patch({ x_expr: e.target.value })} />
+            </label>
+            <label className="admin-field">
+              <span>y(u, v)</span>
+              <input type="text" value={form.y_expr || ''} onChange={(e) => patch({ y_expr: e.target.value })} />
+            </label>
+            <label className="admin-field">
+              <span>z(u, v)</span>
+              <input type="text" value={form.z_expr || ''} onChange={(e) => patch({ z_expr: e.target.value })} />
+            </label>
+          </div>
+          <p className="admin-sub">{t('admin.surfaces.hint')}</p>
+        </>
+      )}
+
+      {/* ---------- params_schema + metadata (JSON) ---------- */}
+      <label className="admin-field">
+        <span>{t('admin.surfaces.paramsSchema')}</span>
+        <textarea
+          value={form.params_schema_raw}
+          onChange={(e) => patch({ params_schema_raw: e.target.value })}
+          style={{
+            minHeight: 100,
+            fontFamily: "ui-monospace, 'SF Mono', Consolas, monospace",
+            fontSize: '0.82rem',
+            whiteSpace: 'pre',
+            tabSize: 2
+          }}
+          spellCheck={false}
+          placeholder='[{"key":"R","label":"R","min":0.6,"max":2,"step":0.05,"default":1.1,"precision":2}]'
+        />
+      </label>
+      <p className="admin-sub">{t('admin.surfaces.paramsSchemaHint')}</p>
+
+      <label className="admin-field">
+        <span>{t('admin.surfaces.metadata')}</span>
+        <textarea
+          value={form.metadata_raw}
+          onChange={(e) => patch({ metadata_raw: e.target.value })}
+          style={{
+            minHeight: 70,
+            fontFamily: "ui-monospace, 'SF Mono', Consolas, monospace",
+            fontSize: '0.82rem',
+            whiteSpace: 'pre',
+            tabSize: 2
+          }}
+          spellCheck={false}
+          placeholder='{"uvSegments": 120}'
+        />
+      </label>
+      <p className="admin-sub">{t('admin.surfaces.metadataHint')}</p>
+
+      <SurfacePreview row={previewRow} onSavedDefaults={(saved) => setForm((f) => ({ ...f, view_config: saved.view_config }))} />
 
       {error && <div className="admin-error">{error}</div>}
 

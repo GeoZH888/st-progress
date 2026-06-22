@@ -351,6 +351,33 @@
       "codeMode": "Modalità codice (corpo JS multi-riga)",
       "codeLabel": "Codice sorgente — assegna x, y, z (u, v ∈ [0, 2π])",
       "codeHint": "Corpo JS multi-riga — dichiara locali, usa sin/cos ecc., assegna x, y, z. Scope ristretto: vietati window, document, fetch, import, eval, globalThis, self.",
+      "kind": "Tipo di superficie",
+      "kinds": {
+        "parametric": "Parametrica (u, v)",
+        "morph": "Morph (animata)",
+        "attractor": "Attrattore (ODE)",
+        "points": "Nuvola di punti",
+        "builtin": "Geometria built-in"
+      },
+      "builtinKind": "Geometria built-in",
+      "builtinKinds": {
+        "torusKnot": "Nodo toroidale"
+      },
+      "pointCount": "Conteggio punti predefinito",
+      "slug": "Slug stabile (opzionale)",
+      "slugHint": "Id in minuscolo per dedup contro i built-in (es. 'klein'). Lascia vuoto per superfici create dagli utenti.",
+      "paramsSchema": "Sliders per visitatori (JSON)",
+      "paramsSchemaHint": "Array di { key, label, min, max, step, default, precision? } — controlla gli sliders sotto la viewport.",
+      "metadata": "Extras per tipo (JSON)",
+      "metadataHint": "Oggetto con extras per tipo: parametric/morph → { uvSegments }, attractor → { dt, x0, y0, z0 }, points → { pointSize, animated }.",
+      "loadStarter": "Carica modello iniziale",
+      "codeLabelMorph": "Codice — assegna x, y, z; usa u, v, time, p",
+      "codeLabelAttractor": "Codice — assegna dx, dy, dz da x, y, z, p",
+      "codeLabelPoints": "Codice — assegna x, y, z da i, n, p",
+      "codeHintMorph": "I corpi ricevono (u, v, time, p). Stesso scope del parametrico — sin/cos/sinh/cosh/PI ecc. Usa `time` per animare.",
+      "codeHintAttractor": "Il corpo restituisce la derivata (dx, dy, dz) dallo stato corrente (x, y, z) e dai parametri p. Il wrapper integra con Eulero a passo fisso.",
+      "codeHintPoints": "Il corpo posiziona il punto i di n in (x, y, z). Il wrapper itera e impacchetta in un buffer.",
+      "builtinHint": "Le geometrie built-in usano un helper Three.js (TorusKnotGeometry ecc.). Imposta i parametri tramite JSON — niente codice.",
       "saveDefaults": "Salva come predefiniti per questa superficie",
       "saveDefaultsTip": "Rende permanenti le scelte di anteprima — la /gallery pubblica mostrerà questa superficie con esse",
       "viewSaved": "Predefiniti salvati — la /gallery pubblica li userà al prossimo caricamento."
