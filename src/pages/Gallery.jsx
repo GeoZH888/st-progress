@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
@@ -86,6 +86,45 @@ export default function Gallery() {
   const [paramsMap, setParamsMap] = useState(() => loadParamsMap())
   useEffect(() => { saveParamsMap(paramsMap) }, [paramsMap])
 
+  // Immersive (fullscreen) viewport. Two layers: a CSS-driven "is-fullscreen"
+  // class that always works, and an optional browser Fullscreen API call so
+  // the OS chrome / URL bar hides too on desktops that allow it. The CSS
+  // layer is what we toggle off of so iOS Safari (no element fullscreen) still
+  // gets the immersive experience.
+  const viewportRef = useRef(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  function toggleFullscreen() {
+    const el = viewportRef.current
+    const next = !isFullscreen
+    setIsFullscreen(next)
+    if (next) {
+      const req = el?.requestFullscreen || el?.webkitRequestFullscreen
+      if (req) { try { req.call(el) } catch { /* ignore */ } }
+    } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen
+      if (exit) { try { exit.call(document) } catch { /* ignore */ } }
+    }
+  }
+  useEffect(() => {
+    function onChange() {
+      const inApi = !!(document.fullscreenElement || document.webkitFullscreenElement)
+      // If the user pressed Esc / used the OS gesture, the browser leaves
+      // fullscreen without going through our toggle — sync the CSS layer.
+      if (!inApi) setIsFullscreen(false)
+    }
+    function onKey(e) {
+      if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false)
+    }
+    document.addEventListener('fullscreenchange', onChange)
+    document.addEventListener('webkitfullscreenchange', onChange)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange)
+      document.removeEventListener('webkitfullscreenchange', onChange)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [isFullscreen])
+
   // Shared site-wide surfaces fetched from Supabase (published only, enforced
   // by RLS so we don't have to filter client-side).
   const [sharedRows, setSharedRows] = useState([])
@@ -165,7 +204,11 @@ export default function Gallery() {
         </aside>
 
         <div className="gallery-viewport-wrap">
-          <div className="gallery-viewport" key={surface.id}>
+          <div
+            ref={viewportRef}
+            className={`gallery-viewport${isFullscreen ? ' is-fullscreen' : ''}`}
+            key={surface.id}
+          >
             <Suspense fallback={<Loading />}>
               <SurfaceViewer
                 surface={surface}
@@ -178,6 +221,16 @@ export default function Gallery() {
                 params={currentParams}
               />
             </Suspense>
+            <button
+              type="button"
+              className="gallery-fullscreen-btn"
+              onClick={toggleFullscreen}
+              title={t(isFullscreen ? 'gallery.fullscreen.exit' : 'gallery.fullscreen.enter')}
+              aria-label={t(isFullscreen ? 'gallery.fullscreen.exit' : 'gallery.fullscreen.enter')}
+              aria-pressed={isFullscreen}
+            >
+              {isFullscreen ? '⤡' : '⤢'}
+            </button>
             <div
               className="gallery-speed-overlay"
               role="group"

@@ -164,6 +164,10 @@
       "orbit": "Orbita",
       "wild":  "Selvaggio"
     },
+    "fullscreen": {
+      "enter": "Schermo intero",
+      "exit":  "Esci da schermo intero"
+    },
     "askLeoPrompt": "Parlami di {{name}} — la sua storia, chi l'ha studiata per primo e dove appare in natura o in altri rami della matematica.",
     "custom": {
       "add": "Aggiungi una tua superficie",

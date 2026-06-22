@@ -164,6 +164,10 @@
       "orbit": "Orbit",
       "wild":  "Wild"
     },
+    "fullscreen": {
+      "enter": "Fullscreen",
+      "exit":  "Exit fullscreen"
+    },
     "askLeoPrompt": "Tell me about {{name}} — its history, who first studied it, and where it appears in nature or other parts of mathematics.",
     "custom": {
       "add": "Add your own surface",

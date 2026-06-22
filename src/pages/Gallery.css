@@ -329,6 +329,54 @@
   }
 }
 
+/* Fullscreen / immersive mode. CSS-driven so iOS Safari (no element-level
+   Fullscreen API) still gets the experience. When the browser also grants
+   real fullscreen the canvas just fills the OS viewport. */
+.gallery-viewport.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  min-height: 0;
+  aspect-ratio: auto;
+  border-radius: 0;
+  z-index: 1000;
+  animation: none;
+}
+/* While fullscreen, hide page scroll cleanly around the immersive layer. */
+body:has(.gallery-viewport.is-fullscreen) {
+  overflow: hidden;
+}
+
+/* Expand/compress toggle, docked top-right of the viewport. Matches the
+   dark translucent style of the speed overlay for visual cohesion. */
+.gallery-fullscreen-btn {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 16, 12, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255, 0.78);
+  border: none;
+  border-radius: 999px;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.gallery-fullscreen-btn:hover {
+  background: rgba(20, 16, 12, 0.75);
+  color: #fff;
+  transform: scale(1.05);
+}
+
 .gallery-viewport canvas {
   display: block;
   width: 100% !important;
