@@ -61,22 +61,92 @@ export function compileExpr(expr) {
  *     y = (R + r * cos(v) + 0.2 * tw) * sin(u)
  *     z = r * sin(v) + 0.2 * tw
  */
-export function compileSource(source) {
+function guardSource(source) {
   if (typeof source !== 'string' || !source.trim()) {
     throw new Error('Empty source')
   }
   if (/(\bwindow\b|\bdocument\b|\bfetch\b|\bimport\b|\brequire\b|\bglobalThis\b|\bself\b|\beval\b)/.test(source)) {
     throw new Error('Source contains a disallowed token')
   }
+}
+
+export function compileSource(source) {
+  guardSource(source)
+  try {
+    // (u, v, p) -> [x, y, z]. `p` is the visitor's current params (may be {}),
+    // so bodies can read `p.R`, `p.twists`, etc. Older bodies that ignore the
+    // third arg keep working unchanged.
+    // eslint-disable-next-line no-new-func
+    const fn = new Function(
+      'u', 'v', 'p',
+      `${MATH_SCOPE}\nlet x = 0, y = 0, z = 0;\n${source};\nreturn [x, y, z];`
+    )
+    const r = fn(0.5, 0.5, {})
+    if (!Array.isArray(r) || r.length !== 3 || !r.every((n) => typeof n === 'number')) {
+      throw new Error('Source must assign x, y, z as finite numbers')
+    }
+    return fn
+  } catch (e) {
+    throw new Error(`Compile error: ${e.message}`)
+  }
+}
+
+// (u, v, time, p) -> [x, y, z]. Bodies can use `time` to drive their own
+// animation — that's how the catenoid↔helicoid morph and modal-sphere mode
+// cycles work.
+export function compileMorphSource(source) {
+  guardSource(source)
   try {
     // eslint-disable-next-line no-new-func
     const fn = new Function(
-      'u', 'v',
+      'u', 'v', 'time', 'p',
       `${MATH_SCOPE}\nlet x = 0, y = 0, z = 0;\n${source};\nreturn [x, y, z];`
     )
-    const r = fn(0.5, 0.5)
+    const r = fn(0.5, 0.5, 0, {})
     if (!Array.isArray(r) || r.length !== 3 || !r.every((n) => typeof n === 'number')) {
-      throw new Error('Source must assign x, y, z as finite numbers')
+      throw new Error('Morph source must assign x, y, z as finite numbers')
+    }
+    return fn
+  } catch (e) {
+    throw new Error(`Compile error: ${e.message}`)
+  }
+}
+
+// ODE step: given current state (x, y, z) and params, return (dx, dy, dz).
+// The wrapper integrates with a fixed-step Euler — bodies just describe the
+// derivative, never the loop.
+export function compileAttractorSource(source) {
+  guardSource(source)
+  try {
+    // eslint-disable-next-line no-new-func
+    const fn = new Function(
+      'x', 'y', 'z', 'p',
+      `${MATH_SCOPE}\nlet dx = 0, dy = 0, dz = 0;\n${source};\nreturn [dx, dy, dz];`
+    )
+    const r = fn(0.1, 0, 0, {})
+    if (!Array.isArray(r) || r.length !== 3 || !r.every((n) => typeof n === 'number')) {
+      throw new Error('Attractor source must assign dx, dy, dz as finite numbers')
+    }
+    return fn
+  } catch (e) {
+    throw new Error(`Compile error: ${e.message}`)
+  }
+}
+
+// Placement function for a point cloud: index i ∈ [0, n) -> [x, y, z].
+// The wrapper iterates and packs into a Float32Array — bodies describe one
+// point at a time.
+export function compilePointsSource(source) {
+  guardSource(source)
+  try {
+    // eslint-disable-next-line no-new-func
+    const fn = new Function(
+      'i', 'n', 'p',
+      `${MATH_SCOPE}\nlet x = 0, y = 0, z = 0;\n${source};\nreturn [x, y, z];`
+    )
+    const r = fn(0, 100, {})
+    if (!Array.isArray(r) || r.length !== 3 || !r.every((n) => typeof n === 'number')) {
+      throw new Error('Points source must assign x, y, z as finite numbers')
     }
     return fn
   } catch (e) {

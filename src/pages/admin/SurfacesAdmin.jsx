@@ -88,8 +88,9 @@ function SurfacePreview({ row, onSavedDefaults }) {
   const [savingDefaults, setSavingDefaults] = useState(false)
   const [savedMsg, setSavedMsg] = useState(null)
 
-  const compiled = useMemo(() => {
-    try { return sharedRowToSurface(row) } catch { return null }
+  const { compiled, compileError } = useMemo(() => {
+    try { return { compiled: sharedRowToSurface(row), compileError: null } }
+    catch (e) { return { compiled: null, compileError: e.message } }
   }, [row])
 
   const motion = PREVIEW_MOTIONS.find((m) => m.id === motionId)?.value ?? 0.35
@@ -129,7 +130,16 @@ function SurfacePreview({ row, onSavedDefaults }) {
   }
 
   if (!compiled) {
-    return <div className="admin-error" style={{ marginTop: '0.5rem' }}>Cannot preview — fix the expressions above.</div>
+    return (
+      <div className="admin-error" style={{ marginTop: '0.5rem', fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '0.85rem' }}>
+        Cannot preview — {compileError || 'fix the expressions above.'}
+        {row?.kind && row.kind !== 'parametric' && (
+          <div style={{ marginTop: '0.3rem', opacity: 0.75 }}>
+            (kind = <code>{row.kind}</code>{row.builtin_kind ? ` · builtin_kind = `: ''}{row.builtin_kind && <code>{row.builtin_kind}</code>})
+          </div>
+        )}
+      </div>
+    )
   }
   return (
     <div className="admin-preview-wrap" style={{ marginTop: '0.6rem' }}>
